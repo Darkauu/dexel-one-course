@@ -14,6 +14,15 @@ export const MATERIAL = {
   tpu: '#EE4F43',
 };
 
+// Ficha de cada material: los cuatro datos, siempre en el mismo orden.
+const specs = (def, ext, bed, hard) =>
+  `<span>Deformación <b>${def}</b></span><span>Extrusión <b>${ext}</b></span>`
+  + `<span>Cama <b>${bed}</b></span><span>Dureza <b>${hard}</b></span>`;
+
+// Etiqueta fija en la esquina superior izquierda del escenario: siempre visible,
+// en una zona que ningún objeto ocupa.
+const CORNER = { x: 6, y: 18 };
+
 const PERIOD = 6.5;
 // Guion de la carga, compartido por PLA y TPU.
 const T = { down: 1.0, contact: 1.7, squash: 2.05, release: 3.4, up: 4.3 };
@@ -104,10 +113,9 @@ export class PlaDemo extends MaterialStage {
     this.aim(dt, view, pointer);
     this.spin(tl);
     this.w.position.y = rigidWeightY(tl, this.gearTop);
-    const loaded = tl > T.contact && tl < T.release;
     return {
-      tag: loaded ? this.project(this.tagAt.set(0.2, 2.6, 1.0), view) : null,
-      live: 'Deformación <b>0 %</b> · Extrusión <b>200 °C</b>',
+      tag: CORNER,
+      live: specs('0 %', '200 °C', '60 °C', '80D'),
     };
   }
 }
@@ -166,11 +174,13 @@ export class TpuDemo extends MaterialStage {
     const bulge = 1 + (1 - sy) * 0.55;
     this.wheel.scale.set(bulge, sy, bulge);
 
+    // La rueda es más alta que el engranaje: la pesa sube menos para no invadir la etiqueta.
+    const lift = LIFT * 0.7;
     let wy;
-    if (tl < T.down) wy = this.tireTop + LIFT;
-    else if (tl < T.contact) wy = this.tireTop + LIFT * (1 - easeInOut((tl - T.down) / (T.contact - T.down)));
+    if (tl < T.down) wy = this.tireTop + lift;
+    else if (tl < T.contact) wy = this.tireTop + lift * (1 - easeInOut((tl - T.down) / (T.contact - T.down)));
     else if (tl < T.release) wy = this.tireTop * sy;
-    else wy = Math.max(this.tireTop * sy, this.tireTop + LIFT * easeInOut((tl - T.release) / (T.up - T.release)));
+    else wy = Math.max(this.tireTop * sy, this.tireTop + lift * easeInOut((tl - T.release) / (T.up - T.release)));
     this.w.position.y = wy;
 
     // La chancleta se dobla en la punta y vuelve, dos veces por ciclo.
@@ -185,10 +195,9 @@ export class TpuDemo extends MaterialStage {
     this.sole.geometry.computeVertexNormals();
 
     const pct = Math.round((1 - Math.min(1, sy)) * 100);
-    const loaded = tl > T.contact && tl < T.release + 0.4;
     return {
-      tag: loaded ? this.project(this.tagAt.set(0.2, wy + 2.2, 0.9), view) : null,
-      live: `Deformación <b>${String(Math.max(0, pct)).padStart(2, '0')} %</b> · Dureza <b>95A</b>`,
+      tag: CORNER,
+      live: specs(`${String(Math.max(0, pct)).padStart(2, '0')} %`, '225 °C', '50 °C', '95A'),
     };
   }
 }
@@ -266,10 +275,9 @@ export class PetgDemo extends MaterialStage {
     const push = 0.5 - 0.5 * Math.cos((tl / PERIOD) * Math.PI * 2);
     this.plunger.position.x = -1.0 + push * 0.85;
 
-    const moving = open > 0.02 && open < 0.98;
     return {
-      tag: moving ? this.project(this.tagAt.set(1.5, 3.9 + open * 0.5, -0.2), view) : null,
-      live: 'Extrusión <b>240 °C</b> · Cama <b>80 °C</b>',
+      tag: CORNER,
+      live: specs('3 %', '240 °C', '80 °C', '75D'),
     };
   }
 }
