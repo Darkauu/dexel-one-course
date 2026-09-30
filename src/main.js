@@ -64,6 +64,8 @@ function onInput(e) {
   switch (e.type) {
     case 'keydown': {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
+      // Un botón con foco ya convierte Espacio/Enter en click: no avanzar dos veces.
+      if ((e.key === ' ' || e.key === 'Enter') && e.target.closest?.('button')) return;
       const k = e.key;
       if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'ArrowDown') next();
       else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'ArrowUp' || k === 'Backspace') prev();

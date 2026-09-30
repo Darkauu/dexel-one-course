@@ -155,7 +155,10 @@ export class VoxelTitle {
     this.key = lights.key;
     this.key.intensity = 2.6;
 
-    this.clip = new THREE.Plane(new THREE.Vector3(0, 0, 1), -WALL_Z - 0.05);
+    // El muro y su plano de recorte viven en el espacio de la palabra: al inclinarse
+    // hacia el puntero, muro y letras giran juntos y ninguna letra lo atraviesa.
+    this.clipLocal = new THREE.Plane(new THREE.Vector3(0, 0, 1), -WALL_Z - 0.05);
+    this.clip = this.clipLocal.clone();
     const mat = new THREE.MeshStandardMaterial({
       color: PALETTE.paper, roughness: 0.62, metalness: 0, clippingPlanes: [this.clip],
     });
@@ -188,7 +191,7 @@ export class VoxelTitle {
     wall.position.z = WALL_Z;
     wall.receiveShadow = true;
     this.wall = wall;
-    this.scene.add(wall);
+    this.group.add(wall);
 
     // Estado por instancia.
     this.cur = new Float32Array(BUDGET * 3);
@@ -304,7 +307,6 @@ export class VoxelTitle {
     this.group.position.set(leftEdge + this.size.w / 2, centreY, 0);
     this.key.target.position.copy(this.group.position);
     this.key.position.copy(this.group.position).add(this.lightDir);
-    this.wall.position.set(this.group.position.x, this.group.position.y, WALL_Z);
 
     // Puntero → coordenadas locales de la palabra.
     let px = 1e6, py = 1e6, nx = 0, ny = 0;
@@ -323,6 +325,8 @@ export class VoxelTitle {
     this.tilt.y = damp(this.tilt.y, nx * 0.16, 0.45, dt);
     this.tilt.x = damp(this.tilt.x, 0.1 + ny * 0.1, 0.45, dt);
     this.group.rotation.set(this.tilt.x, this.tilt.y, 0);
+    this.group.updateMatrixWorld();
+    this.clip.copy(this.clipLocal).applyMatrix4(this.group.matrixWorld);
 
     // Cada letra se mueve como un bloque rígido: su distancia al puntero decide cuánto
     // avanza. Así los frentes siguen siendo una sola cara, sin costuras entre cubos.
