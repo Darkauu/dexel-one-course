@@ -6,8 +6,8 @@ con la carpeta, así que se puede abrir `index.html` directamente, sin red.
 ## Ejecutar
 
 ```sh
-npm install   # solo la primera vez
-npm start     # http://127.0.0.1:5173
+npm install  
+npm start     
 ```
 
 `npm start` sirve la carpeta y recompila `src/` en cada recarga del navegador.
