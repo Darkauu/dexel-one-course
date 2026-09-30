@@ -12,7 +12,7 @@ const cPaper = new THREE.Color(PALETTE.paper);
 const cAccent = new THREE.Color(PALETTE.accent);
 const cDeep = new THREE.Color(PALETTE.inkDeep);
 
-function cyl(rTop, rBottom, h, mat, x = 0, y = 0, z = 0, seg = 40) {
+export function cyl(rTop, rBottom, h, mat, x = 0, y = 0, z = 0, seg = 40) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBottom, h, seg), mat);
   m.position.set(x, y, z);
   m.castShadow = true;
@@ -21,14 +21,14 @@ function cyl(rTop, rBottom, h, mat, x = 0, y = 0, z = 0, seg = 40) {
 }
 
 // Peana redonda: une los objetos de la escena como un diorama.
-function plinth(scene, x, r) {
+export function plinth(scene, x, r) {
   const p = cyl(r, r, 0.6, std(PALETTE.peachShade, 0.85), x, -0.3, 0, 72);
   p.castShadow = false;
   scene.add(p);
 }
 
 // Bobina de filamento, eje vertical. Origen en la base.
-function spool(color) {
+export function spool(color) {
   const g = new THREE.Group();
   const flange = std(PALETTE.paperShade, 0.5);
   g.add(cyl(2.1, 2.1, 0.16, flange, 0, 0.08, 0, 56));

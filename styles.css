@@ -34,6 +34,11 @@
   --paper: #EFEEE8;
   --paper-shade: #DCDAD0;
   --signal: rgb(61, 255, 110); /* reservado: palabras voxel retro. Nunca UI. */
+  /* Colores de MATERIAL (punto 03): representan el filamento real, no la marca.
+     Solo en geometría y muestras de color, nunca como color de texto. */
+  --mat-pla: #EFEEE8;
+  --mat-petg: #9ACBEA;
+  --mat-tpu: #EE4F43;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -168,6 +173,14 @@ html.has-3d .voxel-title { color: transparent; text-shadow: none; }
   row-gap: clamp(6px, 1vh, 12px);
   min-height: 0;
 }
+.compare--3 { grid-template-columns: repeat(3, 1fr); }
+.swatch {
+  display: inline-block;
+  width: 0.9em; height: 0.9em;
+  margin-right: 0.5em;
+  vertical-align: -0.05em;
+  border: 1px solid var(--paper);
+}
 .demo {
   margin: 0;
   display: grid;
@@ -282,7 +295,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
     min-height: 100svh;
     grid-template-rows: 24svh auto auto;
   }
-  .compare { grid-template-columns: 1fr; grid-template-rows: none; }
+  .compare, .compare--3 { grid-template-columns: 1fr; grid-template-rows: none; }
   .stage { height: 34svh; }
   .controls { bottom: 16px; }
 }
