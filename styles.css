@@ -174,6 +174,9 @@ html.has-3d .voxel-title { color: transparent; text-shadow: none; }
   min-height: 0;
 }
 .compare--3 { grid-template-columns: repeat(3, 1fr); }
+.compare--4 { grid-template-columns: repeat(4, 1fr); column-gap: clamp(14px, 2vw, 40px); }
+.compare--4 .demo h3 { font-size: clamp(20px, min(2.3vw, 4vh), 48px); }
+.compare--4 .demo .body { font-size: clamp(14px, min(1.2vw, 2.2vh), 26px); }
 .swatch {
   display: inline-block;
   width: 0.9em; height: 0.9em;
@@ -308,7 +311,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
     min-height: 100svh;
     grid-template-rows: 24svh auto auto;
   }
-  .compare, .compare--3 { grid-template-columns: 1fr; grid-template-rows: none; }
+  .compare, .compare--3, .compare--4 { grid-template-columns: 1fr; grid-template-rows: none; }
   .stage { height: 34svh; }
   .controls { bottom: 16px; }
 }

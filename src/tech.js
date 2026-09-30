@@ -65,7 +65,7 @@ const QUEEN = [
   [0.46, 1.3], [0.38, 2.0], [0.34, 2.35], [0.46, 2.55], [0.64, 2.7], [0.42, 2.84],
   [0.5, 3.0], [0.74, 3.5], [0.6, 3.56], [0.3, 3.58], [0, 3.58],
 ];
-function queen(mat) {
+export function queen(mat) {
   const g = new THREE.Group();
   const body = new THREE.Mesh(new THREE.LatheGeometry(QUEEN.map(([r, y]) => new THREE.Vector2(r, y)), 48), mat);
   g.add(body);

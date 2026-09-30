@@ -21,7 +21,7 @@ const specs = (def, ext, bed, hard) =>
 
 // Etiqueta fija en la esquina superior izquierda del escenario: siempre visible,
 // en una zona que ningún objeto ocupa.
-const CORNER = { x: 6, y: 18 };
+export const CORNER = { x: 6, y: 18 };
 
 const PERIOD = 6.5;
 // Guion de la carga, compartido por PLA y TPU.
