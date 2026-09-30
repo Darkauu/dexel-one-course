@@ -14,8 +14,8 @@ const cAccent = new THREE.Color(PALETTE.accent);
 const cAccentShade = new THREE.Color(PALETTE.accentShade);
 const tmpC = new THREE.Color();
 
-const std = (color, rough = 0.6) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
-function box(w, h, d, mat, x = 0, y = 0, z = 0) {
+export const std = (color, rough = 0.6) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
+export function box(w, h, d, mat, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z);
   m.castShadow = true;
@@ -23,16 +23,38 @@ function box(w, h, d, mat, x = 0, y = 0, z = 0) {
   return m;
 }
 
-// Base común: escena, cámara, cama y pórtico.
-class Stage {
-  constructor() {
+// Cabezal FDM: boquilla, bloque calefactor, disipador y carro. Origen en la punta.
+export function makeHotend(frameMat) {
+  const head = new THREE.Group();
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.42, 0.55, 16), std(PALETTE.peach, 0.4));
+  tip.position.y = 0.3;
+  head.add(tip);
+  head.add(box(1.3, 0.75, 1.1, std(PALETTE.paperShade, 0.5), 0, 0.95, 0));
+  for (let k = 0; k < 5; k++) head.add(box(1.15, 0.13, 1.15, std(PALETTE.peach, 0.5), 0, 1.55 + k * 0.28, 0));
+  head.add(box(1.9, 1.5, 0.45, frameMat, 0, 3.1, -0.5));
+  const fil = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.2, 8), std(PALETTE.paper, 0.4));
+  fil.position.y = 4.9; // el filamento entra por arriba del carro
+  head.add(fil);
+  head.traverse((o) => { o.castShadow = true; });
+  return head;
+}
+
+// Base común: escena, cámara y (opcional) cama.
+// radius/focus encuadran la escena contra el frustum, no contra un viewport fijo.
+export class Stage {
+  constructor({ bed = true, radius = 11.6, focus = [0, 6, 0], shadowSize = 13, azimuth = 0.72 } = {}) {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, 1, 1, 400);
-    addLights(this.scene, { shadow: true, shadowSize: 13 });
+    this.lights = addLights(this.scene, { shadow: true, shadowSize });
+    this.radius = radius;
+    this.azimuth = azimuth;
+    this.period = TIMELINE.period;
 
-    const bed = box(BED, 0.6, BED, std(PALETTE.peachShade, 0.8), 0, -0.3, 0);
-    bed.castShadow = false;
-    this.scene.add(bed);
+    if (bed) {
+      const plate = box(BED, 0.6, BED, std(PALETTE.peachShade, 0.8), 0, -0.3, 0);
+      plate.castShadow = false;
+      this.scene.add(plate);
+    }
 
     // Recorte en la cara superior de la cama: lo que baja a través de ella desaparece
     // sin transparencias.
@@ -40,7 +62,7 @@ class Stage {
     this.cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0, clippingPlanes: [this.clip] });
 
     this.orbit = { az: 0, el: 0 };
-    this.focus = new THREE.Vector3(0, 6, 0);
+    this.focus = new THREE.Vector3(...focus);
     this.proj = new THREE.Vector3();
   }
 
@@ -71,9 +93,9 @@ class Stage {
     cam.aspect = view.w / view.h;
     this.orbit.az = damp(this.orbit.az, pointer.nx * 0.22, 0.6, dt);
     this.orbit.el = damp(this.orbit.el, -pointer.ny * 0.1, 0.6, dt);
-    const az = 0.72 + this.orbit.az;
+    const az = this.azimuth + this.orbit.az;
     const el = 0.5 + this.orbit.el;
-    const d = fitDistance(cam, 11.6, cam.aspect);
+    const d = fitDistance(cam, this.radius, cam.aspect);
     cam.position.set(
       this.focus.x + d * Math.cos(el) * Math.sin(az),
       this.focus.y + d * Math.sin(el),
@@ -128,18 +150,7 @@ export class AdditiveDemo extends Stage {
     const frame = std(PALETTE.peachShade, 0.7);
     this.gantry = this.makeGantry(frame);
 
-    // Cabezal: boquilla, bloque calefactor, disipador y carro.
-    const head = new THREE.Group();
-    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.42, 0.55, 16), std(PALETTE.peach, 0.4));
-    tip.position.y = 0.3;
-    head.add(tip);
-    head.add(box(1.3, 0.75, 1.1, std(PALETTE.paperShade, 0.5), 0, 0.95, 0));
-    for (let k = 0; k < 5; k++) head.add(box(1.15, 0.13, 1.15, std(PALETTE.peach, 0.5), 0, 1.55 + k * 0.28, 0));
-    head.add(box(1.9, 1.5, 0.45, frame, 0, 3.1, -0.5));
-    const fil = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.2, 8), std(PALETTE.paper, 0.4));
-    fil.position.y = 4.9; // el filamento entra por arriba del carro
-    head.add(fil);
-    head.traverse((o) => { o.castShadow = true; });
+    const head = makeHotend(frame);
     head.scale.setScalar(1.35); // legible desde el fondo de la sala
     this.head = head;
     this.scene.add(head);

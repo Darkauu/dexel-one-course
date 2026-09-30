@@ -46,7 +46,11 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - `src/voxelTitle.js` — palabra voxel: rasterizado → recorte a la tinta → ajuste al
   presupuesto de cubos → extrusión con relieve; cada glifo avanza como bloque rígido
   según la distancia del puntero; las caras interiores se colapsan en el shader.
-- `src/demos.js` — aditiva (boquilla) y sustractiva (láser): la misma pirámide de
-  329 cubos, con un guion temporal común.
+- `src/demos.js` — punto 01: aditiva (boquilla) y sustractiva (láser), la misma
+  pirámide de 329 cubos con un guion temporal común. También la base `Stage`.
+- `src/tech.js` — punto 02: dioramas de FDM y resina.
+- Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
+  registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
+  `<div class="stage" data-3d="nombre">`.
 - `src/gl.js` — un contexto WebGL: campo de ruido de fondo + un pase por zona.
 - `src/main.js` — navegación, reloj único, entrada, arranque y salud de fotogramas.
