@@ -49,6 +49,8 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - `src/demos.js` — punto 01: aditiva (boquilla) y sustractiva (láser), la misma
   pirámide de 329 cubos con un guion temporal común. También la base `Stage`.
 - `src/tech.js` — punto 02: dioramas de FDM y resina.
+- `src/materials.js` — punto 03: PLA, PETG y TPU (carrete + aplicación); PLA y TPU
+  reciben la misma carga al mismo tiempo para comparar rigidez y elasticidad.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
