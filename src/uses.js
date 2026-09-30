@@ -59,7 +59,10 @@ export class PrototypeDemo extends UseStage {
       }
       g.position.set(xs[v], 0, -0.6 + v * 0.1);
       this.scene.add(g);
-      this.versions.push({ g, grow, h: v >= 1 ? 1.18 : 1.0 });
+      // Tapa de la capa en curso: sin ella la carcasa recortada se ve hueca por arriba.
+      const cap = box(v >= 1 ? 1.7 : 1.6, 0.02, v >= 1 ? 1.3 : 1.2, clippedMat(colors[v], [this.floor], 0.5));
+      g.add(cap);
+      this.versions.push({ g, grow, cap, h: v >= 1 ? 1.18 : 1.0 });
     }
 
     // Llave de boca hexagonal, impresa y acostada.
@@ -92,13 +95,18 @@ export class PrototypeDemo extends UseStage {
     this.aim(dt, view, pointer);
     const sink = tl > 8.1 ? easeInOut((tl - 8.1) / 0.9) * 1.5 : 0;
     let shown = 0;
-    this.versions.forEach(({ g, grow, h }, v) => {
+    this.versions.forEach(({ g, grow, cap, h }, v) => {
       const start = 0.4 + v * 2.2;
       const p = clamp01((tl - start) / 1.5);
       if (p > 0) shown = v + 1;
       g.position.y = -sink;
       grow.constant = p * (h + 0.02) - sink;
       g.visible = p > 0;
+      cap.visible = p > 0 && p < 1;
+      cap.position.y = p * (h + 0.02) - 0.011;
+      // Por debajo de la tapa, la capa tiene el ancho del cuerpo (1,6 × 1,2).
+      const inLid = h > 1.0 && cap.position.y > 1.0;
+      cap.scale.set(h > 1.0 && !inLid ? 1.6 / 1.7 : 1, 1, h > 1.0 && !inLid ? 1.2 / 1.3 : 1);
     });
     return {
       tag: CORNER,
