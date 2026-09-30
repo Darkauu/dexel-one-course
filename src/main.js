@@ -63,6 +63,8 @@ function onInput(e) {
   switch (e.type) {
     case 'keydown': {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
+      // Con una ventana emergente abierta, el teclado es suyo (Esc la cierra de forma nativa).
+      if (popupOpen()) return;
       // Un botón con foco ya convierte Espacio/Enter en click: no avanzar dos veces.
       if ((e.key === ' ' || e.key === 'Enter') && e.target.closest?.('button')) return;
       const k = e.key;
@@ -89,7 +91,7 @@ function onInput(e) {
       pointer.active = false; pointer.tx = 0; pointer.ty = 0;
       return;
     case 'pointerdown':
-      if (e.pointerType !== 'mouse') swipe = { x: e.clientX, y: e.clientY };
+      if (e.pointerType !== 'mouse' && !popupOpen()) swipe = { x: e.clientX, y: e.clientY };
       return;
     case 'pointerup': {
       if (swipe && e.pointerType !== 'mouse') {
@@ -101,6 +103,18 @@ function onInput(e) {
       return;
     }
     case 'click': {
+      // Alerta «!» → abre su ventana. X o clic fuera (en el fondo) → la cierra.
+      const opener = e.target.closest('[data-popup]');
+      if (opener) {
+        const d = document.getElementById(`popup-${opener.dataset.popup}`);
+        if (d && !d.open) d.showModal();
+        return;
+      }
+      const dlg = e.target.closest('dialog.popup');
+      if (dlg) {
+        if (e.target === dlg || e.target.closest('[data-popup-close]')) dlg.close();
+        return;
+      }
       const b = e.target.closest('[data-nav]');
       if (b) (b.dataset.nav === 'next' ? next : prev)();
       return;
@@ -110,6 +124,7 @@ function onInput(e) {
   }
 }
 let swipe = null;
+const popupOpen = () => !!document.querySelector('dialog.popup[open]');
 ['keydown', 'pointermove', 'pointerdown', 'pointerup', 'click', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
 document.documentElement.addEventListener('pointerleave', onInput);
 

@@ -275,7 +275,7 @@
         <figure class="demo">
           <div class="stage" data-3d="color">
             <svg viewBox="-140 -130 280 210" role="img" aria-label="Una torre de un solo color y otra de cuatro colores alimentada por un AMS" preserveAspectRatio="xMidYMid meet"><ellipse cx="0.0" cy="10.8" rx="105.8" ry="61.1" fill="var(--ink-deep)"/><rect x="-105.8" y="0.0" width="211.6" height="10.8" fill="var(--ink-deep)"/><ellipse cx="0.0" cy="0.0" rx="105.8" ry="61.1" fill="var(--peach-shade)"/><polygon points="28.8,-47.3 81.8,-16.6 61.6,-4.9 8.6,-35.6" fill="var(--paper-shade)"/><polygon points="8.6,-17.6 61.6,13.1 61.6,-4.9 8.6,-35.6" fill="var(--peach)"/><polygon points="81.8,1.4 61.6,13.1 61.6,-4.9 81.8,-16.6" fill="var(--peach-shade)"/><polygon points="-51.4,-57.6 -34.3,-47.7 -51.4,-37.8 -68.6,-47.7" fill="var(--paper)"/><polygon points="-68.6,-4.5 -51.4,5.4 -51.4,-37.8 -68.6,-47.7" fill="var(--paper-shade)"/><polygon points="-34.3,-4.5 -51.4,5.4 -51.4,-37.8 -34.3,-47.7" fill="var(--peach)"/><polygon points="3.1,2.7 20.3,12.6 3.1,22.5 -14.0,12.6" fill="var(--paper)"/><polygon points="-14.0,23.4 3.1,33.3 3.1,22.5 -14.0,12.6" fill="var(--paper)"/><polygon points="20.3,23.4 3.1,33.3 3.1,22.5 20.3,12.6" fill="var(--paper-shade)"/><polygon points="3.1,-8.1 20.3,1.8 3.1,11.7 -14.0,1.8" fill="var(--mat-petg)"/><polygon points="-14.0,12.6 3.1,22.5 3.1,11.7 -14.0,1.8" fill="var(--mat-petg)"/><polygon points="20.3,12.6 3.1,22.5 3.1,11.7 20.3,1.8" fill="var(--mat-petg)"/><polygon points="3.1,-18.9 20.3,-9.0 3.1,0.9 -14.0,-9.0" fill="var(--mat-tpu)"/><polygon points="-14.0,1.8 3.1,11.7 3.1,0.9 -14.0,-9.0" fill="var(--mat-tpu)"/><polygon points="20.3,1.8 3.1,11.7 3.1,0.9 20.3,-9.0" fill="var(--accent-shade)"/><polygon points="3.1,-29.7 20.3,-19.8 3.1,-9.9 -14.0,-19.8" fill="var(--peach)"/><polygon points="-14.0,-9.0 3.1,0.9 3.1,-9.9 -14.0,-19.8" fill="var(--peach-shade)"/><polygon points="20.3,-9.0 3.1,0.9 3.1,-9.9 20.3,-19.8" fill="var(--ink-deep)"/></svg>
-            <p class="micro tag tag--pinned" data-tag="color"><b>Sin AMS</b> / Un color</p>
+            <p class="micro tag tag--pinned" data-tag="color"><b>Sin AMS</b> / Un color<button type="button" class="alert-btn" data-popup="ams" aria-label="¿Qué es un AMS?" aria-haspopup="dialog">!</button></p>
           </div>
           <figcaption>
             <p class="micro index">C /</p>
@@ -305,6 +305,24 @@
     <button type="button" data-nav="prev" aria-label="Anterior">←</button>
     <button type="button" data-nav="next" aria-label="Siguiente">→</button>
   </nav>
+
+
+  <dialog class="popup" id="popup-ams" aria-labelledby="popup-ams-title">
+    <div class="popup-bar">
+      <p class="micro">Info / Accesorio</p>
+      <button type="button" class="popup-close" data-popup-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="popup-body">
+      <h2 id="popup-ams-title">¿Qué es un AMS?</h2>
+      <svg class="popup-art" viewBox="0 0 560 250" role="img" aria-label="Unidad AMS con cuatro bobinas conectadas por tubos a la impresora, que imprime una pieza de cuatro colores"><rect x="24" y="120" width="250" height="104" fill="var(--paper-shade)"/><rect x="24" y="120" width="250" height="16" fill="var(--paper)"/><text x="36" y="212" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="2">AMS</text><rect class="ams-slot ams-slot--0" x="31" y="138" width="54" height="62" fill="var(--alert-yellow)"/><circle cx="58" cy="170" r="24" fill="var(--paper)"/><circle cx="58" cy="170" r="20" fill="var(--mat-pla)"/><circle cx="58" cy="170" r="7" fill="var(--ink-deep)"/><path class="ams-flow" d="M58 146 C 58 90, 300 110, 330 70" fill="none" stroke="var(--mat-pla)" stroke-width="4"/><rect class="ams-slot ams-slot--1" x="89" y="138" width="54" height="62" fill="var(--alert-yellow)"/><circle cx="116" cy="170" r="24" fill="var(--paper)"/><circle cx="116" cy="170" r="20" fill="var(--mat-petg)"/><circle cx="116" cy="170" r="7" fill="var(--ink-deep)"/><path class="ams-flow" d="M116 146 C 116 90, 300 110, 330 70" fill="none" stroke="var(--mat-petg)" stroke-width="4"/><rect class="ams-slot ams-slot--2" x="147" y="138" width="54" height="62" fill="var(--alert-yellow)"/><circle cx="174" cy="170" r="24" fill="var(--paper)"/><circle cx="174" cy="170" r="20" fill="var(--mat-tpu)"/><circle cx="174" cy="170" r="7" fill="var(--ink-deep)"/><path class="ams-flow" d="M174 146 C 174 90, 300 110, 330 70" fill="none" stroke="var(--mat-tpu)" stroke-width="4"/><rect class="ams-slot ams-slot--3" x="205" y="138" width="54" height="62" fill="var(--alert-yellow)"/><circle cx="232" cy="170" r="24" fill="var(--paper)"/><circle cx="232" cy="170" r="20" fill="var(--peach)"/><circle cx="232" cy="170" r="7" fill="var(--ink-deep)"/><path class="ams-flow" d="M232 146 C 232 90, 300 110, 330 70" fill="none" stroke="var(--peach)" stroke-width="4"/><rect x="318" y="58" width="26" height="24" fill="var(--peach)"/><path class="ams-out" d="M344 70 C 400 40, 440 40, 452 86" fill="none" stroke="var(--mat-pla)" stroke-width="5"/><rect x="380" y="40" width="10" height="186" fill="var(--paper-shade)"/><rect x="520" y="40" width="10" height="186" fill="var(--paper-shade)"/><rect x="380" y="34" width="150" height="10" fill="var(--paper-shade)"/><rect x="384" y="104" width="142" height="8" fill="var(--paper-shade)"/><rect x="438" y="86" width="28" height="30" fill="var(--peach)"/><path d="M446 116 L458 116 L452 126 Z" fill="var(--paper)"/><rect x="396" y="214" width="118" height="10" fill="var(--peach-shade)"/><rect x="432" y="202" width="40" height="14" fill="var(--mat-pla)"/><rect x="432" y="186" width="40" height="14" fill="var(--mat-petg)"/><rect x="432" y="170" width="40" height="14" fill="var(--mat-tpu)"/><rect x="432" y="154" width="40" height="14" fill="var(--peach)"/></svg>
+      <p>Un <b>AMS</b> (sistema automático de materiales) es una caja que se conecta a la impresora y guarda varias bobinas. Durante la impresión cambia de filamento solo: retira uno, carga el siguiente y limpia el color anterior.</p>
+      <ul>
+        <li>Hasta 4 bobinas por unidad; algunas impresoras aceptan varias unidades.</li>
+        <li>Una misma pieza puede tener varios colores o materiales.</li>
+        <li>Cada cambio de color tarda y gasta algo de filamento en la purga.</li>
+      </ul>
+    </div>
+  </dialog>
 
   <div class="blank" aria-hidden="true"></div>
 
