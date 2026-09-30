@@ -22,7 +22,9 @@ export function cyl(rTop, rBottom, h, mat, x = 0, y = 0, z = 0, seg = 40) {
 
 // Peana redonda: une los objetos de la escena como un diorama.
 export function plinth(scene, x, r) {
-  const p = cyl(r, r, 0.6, std(PALETTE.peachShade, 0.85), x, -0.3, 0, 72);
+  // La cara superior queda apenas bajo y=0: ningún objeto apoyado comparte su plano
+  // (evita el parpadeo de caras coplanares, sobre todo en piezas de doble cara).
+  const p = cyl(r, r, 0.6, std(PALETTE.peachShade, 0.85), x, -0.305, 0, 72);
   p.castShadow = false;
   scene.add(p);
 }

@@ -30,7 +30,7 @@ export class TimeDemo extends LimitStage {
     );
     const mat = new THREE.MeshStandardMaterial({ color: PALETTE.paper, roughness: 0.5, side: THREE.DoubleSide, clippingPlanes: [this.grow, this.floor] });
     this.vase = new THREE.Mesh(vaseGeo, mat);
-    this.vase.position.set(0.9, 0, -0.3);
+    this.vase.position.set(0.9, 0.02, -0.3);
     this.vase.castShadow = true;
     this.scene.add(this.vase);
     this.vaseH = 3.4;
@@ -57,7 +57,7 @@ export class TimeDemo extends LimitStage {
     this.aim(dt, view, pointer);
     const p = clamp01((tl - 0.3) / 10.5);           // avance de la impresión
     const sink = tl > 11.2 ? easeInOut((tl - 11.2) / 0.8) * 3.6 : 0;
-    this.vase.position.y = -sink;
+    this.vase.position.y = 0.02 - sink;
     this.grow.constant = p * this.vaseH - sink + 0.001;
 
     // Arena: arriba se vacía, abajo se llena (conos que cambian de altura).
@@ -104,8 +104,9 @@ export class LayersDemo extends LimitStage {
     this.lens = new THREE.Group();
     const face = new THREE.Mesh(new THREE.CircleGeometry(1.3, 56), new THREE.MeshBasicMaterial({ map: this.rt.texture }));
     const rim = new THREE.Mesh(new THREE.TorusGeometry(1.32, 0.12, 12, 56), std(PALETTE.peachShade, 0.35));
-    const handle = cyl(0.11, 0.13, 1.5, std(PALETTE.peachShade, 0.35), 1.3, -1.3, 0, 16);
-    handle.rotation.z = Math.PI / 4;
+    // Mango hacia un costado (no hacia abajo): la lupa nunca toca la peana.
+    const handle = cyl(0.11, 0.13, 1.5, std(PALETTE.peachShade, 0.35), 1.95, -0.55, 0, 16);
+    handle.rotation.z = Math.PI / 2 - 0.35;
     this.lens.add(face, rim, handle);
     this.scene.add(this.lens);
     this.target = new THREE.Vector3();
@@ -115,7 +116,7 @@ export class LayersDemo extends LimitStage {
     this.aim(dt, view, pointer);
     // La lupa sube y baja despacio por el costado de la esfera.
     const s = Math.sin((tl / this.period) * Math.PI * 2);
-    const yRel = s * 0.9;
+    const yRel = 0.2 + s * 0.6;
     const b = this.ball.position;
     const rAt = Math.sqrt(this.R * this.R - yRel * yRel);
     // Punto de la superficie mirando hacia la cámara.
@@ -128,6 +129,7 @@ export class LayersDemo extends LimitStage {
     // El lente flota entre la esfera y la cámara, un poco a la derecha, de frente.
     const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), dir).normalize().negate();
     this.lens.position.copy(this.target).addScaledVector(dir, 2.0).addScaledVector(right, 0.8).add(new THREE.Vector3(0, 0.1, 0));
+    this.lens.position.y = Math.max(this.lens.position.y, 1.55); // aro (r 1.32) siempre sobre la peana
     this.lens.quaternion.copy(this.camera.quaternion);
 
     return { tag: CORNER, live: 'Altura de capa <b>0,2 mm</b> · Zoom <b>×8</b>' };
@@ -177,6 +179,14 @@ export class ColorDemo extends LimitStage {
     this.multi.position.set(1.4, 0, 1.2);
     this.scene.add(this.multi);
 
+    // Tapas: el recorte deja las torres abiertas por arriba; una tapa sigue a la
+    // capa que se está imprimiendo, del color de esa capa.
+    const capGeo = new THREE.BoxGeometry(1.1, 0.02, 1.1);
+    this.monoCap = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({ color: PALETTE.paper, roughness: 0.5, clippingPlanes: [this.floor] }));
+    this.multiCapMat = new THREE.MeshStandardMaterial({ color: AMS_COLORS[0], roughness: 0.5, clippingPlanes: [this.floor] });
+    this.multiCap = new THREE.Mesh(capGeo, this.multiCapMat);
+    this.scene.add(this.monoCap, this.multiCap);
+
     // Unidad AMS: caja con cuatro bobinas asomando; la activa se levanta.
     const ams = new THREE.Group();
     ams.add(box(3.4, 1.0, 1.3, std(PALETTE.paperShade, 0.5), 0, 0.5, 0));
@@ -202,6 +212,12 @@ export class ColorDemo extends LimitStage {
     this.monoTower.position.y = this.H / 2 - sink;
     this.multi.position.y = -sink;
     const active = p < 1 && p > 0 ? Math.min(3, Math.floor(p * 4)) : -1;
+    const top = p * this.H - sink - 0.011;
+    const printing = p > 0.002 && p < 0.999;
+    this.monoCap.visible = this.multiCap.visible = printing;
+    this.monoCap.position.set(-1.9, top, 1.4);
+    this.multiCap.position.set(1.4, top, 1.2);
+    this.multiCapMat.color.set(AMS_COLORS[Math.max(0, Math.min(3, Math.floor(p * 4)))]);
     this.slots.forEach((s, k) => { s.position.y = 1.05 + (k === active ? 0.25 : 0); });
     return { tag: CORNER, live: 'Sin AMS <b>1</b> · Con AMS <b>4</b> colores' };
   }
