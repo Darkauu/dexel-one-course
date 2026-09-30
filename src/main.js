@@ -1,7 +1,6 @@
 // Deck: un reloj, un manejador de entrada, un contexto WebGL.
 // Todo el estado visual es función pura de (diapositiva, paso) + tiempo desde que se entró.
 import { damp } from './shared.js';
-import { TIMELINE } from './shared.js';
 
 const html = document.documentElement;
 const params = new URLSearchParams(location.search);
@@ -183,7 +182,7 @@ function tick(now) {
   // Sincronía por fotograma con chequeo de identidad (no en el evento).
   const slide = slides[state.slide];
   const titleZone = slide.querySelector('[data-3d="title"]');
-  const zones = { loopTime: (clock.time - state.enteredAt) % TIMELINE.period };
+  const zones = { sinceEnter: clock.time - state.enteredAt, stages: [] };
   if (titleZone) {
     const r = rectOf(titleZone);
     const eyebrow = titleZone.querySelector('.eyebrow');
@@ -191,10 +190,8 @@ function tick(now) {
     zones.title = { x: r.x, y: r.y + inset, w: r.w, h: r.h - inset };
     gl.title.setLines(titleLinesFor(slide, zones.title), clock.time);
   }
-  const addEl = slide.querySelector('[data-3d="additive"]');
-  const subEl = slide.querySelector('[data-3d="subtractive"]');
-  if (addEl) zones.additive = rectOf(addEl);
-  if (subEl) zones.subtractive = rectOf(subEl);
+  const stageEls = [...slide.querySelectorAll('[data-3d]:not([data-3d="title"])')];
+  for (const el of stageEls) zones.stages.push({ name: el.dataset['3d'], rect: rectOf(el) });
 
   let out;
   try {
@@ -204,9 +201,10 @@ function tick(now) {
     return;
   }
 
-  for (const [name, el] of [['additive', addEl], ['subtractive', subEl]]) {
+  for (const el of stageEls) {
+    const name = el.dataset['3d'];
     const o = out[name];
-    if (!o || !el) continue;
+    if (!o) continue;
     const live = slide.querySelector(`[data-live="${name}"]`);
     if (live) setText(live, o.live);
     const tag = el.querySelector(`[data-tag="${name}"]`);

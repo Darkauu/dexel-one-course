@@ -4,6 +4,16 @@ import * as THREE from 'three';
 import { PALETTE } from './shared.js';
 import { VoxelTitle } from './voxelTitle.js';
 import { AdditiveDemo, SubtractiveDemo } from './demos.js';
+import { FdmDemo, ResinDemo } from './tech.js';
+
+// Escenas disponibles: el nombre es el valor de data-3d en el HTML.
+// Cada una se construye la primera vez que una diapositiva la pide.
+const SCENES = {
+  additive: AdditiveDemo,
+  subtractive: SubtractiveDemo,
+  fdm: FdmDemo,
+  resin: ResinDemo,
+};
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión
 // para coincidir exactamente con el CSS.
@@ -86,8 +96,7 @@ export class GLLayer {
     this.fieldScene.add(quad);
 
     this.title = new VoxelTitle();
-    this.additive = new AdditiveDemo();
-    this.subtractive = new SubtractiveDemo();
+    this.scenes = new Map();
     this.size = { w: 0, h: 0, dpr: 0 };
   }
 
@@ -136,13 +145,13 @@ export class GLLayer {
       this.title.frame(dt, time, rect, view, pointer);
       this.pass(this.title.scene, this.title.camera, view);
     }
-    if (zones.additive) {
-      out.additive = this.additive.frame(dt, zones.loopTime, zones.additive, pointer);
-      this.pass(this.additive.scene, this.additive.camera, zones.additive);
-    }
-    if (zones.subtractive) {
-      out.subtractive = this.subtractive.frame(dt, zones.loopTime, zones.subtractive, pointer);
-      this.pass(this.subtractive.scene, this.subtractive.camera, zones.subtractive);
+    for (const { name, rect } of zones.stages) {
+      const Scene = SCENES[name];
+      if (!Scene) continue;
+      if (!this.scenes.has(name)) this.scenes.set(name, new Scene());
+      const demo = this.scenes.get(name);
+      out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer);
+      this.pass(demo.scene, demo.camera, rect);
     }
     r.setScissorTest(false);
     return out;

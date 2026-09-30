@@ -161,13 +161,18 @@ html.has-3d .voxel-title { color: transparent; text-shadow: none; }
 .compare {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(16px, 3vw, 64px);
+  /* Escenario y pie comparten filas entre columnas: las líneas de los pies
+     quedan a la misma altura aunque un texto ocupe más renglones. */
+  grid-template-rows: minmax(0, 1fr) auto;
+  column-gap: clamp(16px, 3vw, 64px);
+  row-gap: clamp(6px, 1vh, 12px);
   min-height: 0;
 }
 .demo {
   margin: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
   min-height: 0;
 }
 .stage {
@@ -277,7 +282,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
     min-height: 100svh;
     grid-template-rows: 24svh auto auto;
   }
-  .compare { grid-template-columns: 1fr; }
+  .compare { grid-template-columns: 1fr; grid-template-rows: none; }
   .stage { height: 34svh; }
   .controls { bottom: 16px; }
 }
