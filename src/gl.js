@@ -7,6 +7,7 @@ import { AdditiveDemo, SubtractiveDemo } from './demos.js';
 import { FdmDemo, ResinDemo } from './tech.js';
 import { PlaDemo, PetgDemo, TpuDemo } from './materials.js';
 import { PrototypeDemo, SparePartDemo, DecorDemo, DailyDemo } from './uses.js';
+import { TimeDemo, LayersDemo, ColorDemo, MaterialLimitDemo } from './limits.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -22,6 +23,10 @@ const SCENES = {
   spare: SparePartDemo,
   decor: DecorDemo,
   daily: DailyDemo,
+  time: TimeDemo,
+  layers: LayersDemo,
+  color: ColorDemo,
+  heat: MaterialLimitDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión
@@ -160,6 +165,8 @@ export class GLLayer {
       if (!this.scenes.has(name)) this.scenes.set(name, new Scene());
       const demo = this.scenes.get(name);
       out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer);
+      // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
+      if (demo.prepass) demo.prepass(this.renderer);
       this.pass(demo.scene, demo.camera, rect);
     }
     r.setScissorTest(false);

@@ -214,7 +214,7 @@ function tick(now) {
         // Si no cabe a la derecha del punto, la etiqueta se da vuelta hacia la izquierda.
         const flip = o.tag.x + tag.offsetWidth > el.clientWidth;
         tag.classList.toggle('is-flipped', flip);
-        const x = flip ? o.tag.x - tag.offsetWidth : o.tag.x;
+        const x = flip ? Math.max(0, o.tag.x - tag.offsetWidth) : o.tag.x;
         tag.style.transform = `translate(${x.toFixed(1)}px, ${(o.tag.y - tag.offsetHeight / 2).toFixed(1)}px)`;
       }
     }
