@@ -96,7 +96,7 @@ html:not(.has-3d) #gl { display: none; }
   position: absolute;
   inset: 0;
   display: none;
-  grid-template-rows: auto minmax(0, 31fr) auto minmax(0, 57fr) auto;
+  grid-template-rows: minmax(0, 23fr) auto minmax(0, 62fr);
   row-gap: clamp(8px, 1.4vh, 20px);
   padding: clamp(14px, 2.6vh, 36px) var(--gutter);
   background: var(--ink);
@@ -106,13 +106,6 @@ html:not(.has-3d) #gl { display: none; }
 /* Con el campo vivo, el shader pinta el fondo: la sección suelta su color. */
 html.has-3d .slide { background: transparent; }
 
-.slide-meta, .slide-status {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1em;
-}
-.slide-status .micro:last-child { text-align: right; }
 
 /* ---------- título de sección (voxel) ---------- */
 .title-zone {
@@ -122,7 +115,10 @@ html.has-3d .slide { background: transparent; }
   align-content: center;
   justify-items: start;
 }
-.title-zone .eyebrow { position: absolute; top: 0; left: 0; }
+.title-zone .eyebrow {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; gap: 1em;
+}
 .voxel-title {
   margin: 0;
   font-family: var(--f-display);
@@ -130,7 +126,7 @@ html.has-3d .slide { background: transparent; }
   text-transform: uppercase;
   line-height: 0.98; /* las tildes de mayúscula necesitan este aire */
   letter-spacing: -0.01em;
-  font-size: clamp(40px, min(7.4vw, 11vh), 170px);
+  font-size: clamp(32px, min(5.4vw, 8vh), 124px);
   color: var(--paper);
   /* Fallback sin WebGL: relieve apilado, bloque sólido que se despega del fondo. */
   text-shadow:
@@ -229,7 +225,7 @@ html:not(.has-3d) .tag { display: none; }
 .controls {
   position: fixed;
   right: var(--gutter);
-  bottom: clamp(44px, 7vh, 80px);
+  bottom: clamp(14px, 2.6vh, 36px);
   z-index: 3;
   display: flex;
   gap: 6px;
@@ -279,7 +275,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .slide {
     position: relative;
     min-height: 100svh;
-    grid-template-rows: auto 30svh auto auto auto;
+    grid-template-rows: 24svh auto auto;
   }
   .compare { grid-template-columns: 1fr; }
   .stage { height: 34svh; }
