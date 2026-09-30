@@ -3,6 +3,16 @@
 Deck de clase como página web. Todo es local: fuentes, three.js y el bundle viajan
 con la carpeta, así que se puede abrir `index.html` directamente, sin red.
 
+## Ejecutar
+
+```sh
+npm install   # solo la primera vez
+npm start     # http://127.0.0.1:5173
+```
+
+`npm start` sirve la carpeta y recompila `src/` en cada recarga del navegador.
+Sin Node también funciona: abrir `index.html` directamente.
+
 ## Presentar
 
 | Tecla | Acción |
