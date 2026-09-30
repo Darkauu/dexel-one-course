@@ -209,7 +209,13 @@ html.has-3d .stage svg { visibility: hidden; }
   border-left: 2px solid var(--peach);
 }
 .tag.is-on { opacity: 1; }
+.tag.is-flipped {
+  padding-left: 0; padding-right: 14px;
+  border-left: 0; border-right: 2px solid var(--peach);
+}
 html:not(.has-3d) .tag { display: none; }
+/* Etiquetas fijas (punto 03): visibles siempre, también sin 3D y al imprimir. */
+html:not(.has-3d) .tag--pinned { display: block; opacity: 1; transform: translate(6px, 18px); }
 
 .demo figcaption {
   display: grid;
@@ -238,6 +244,13 @@ html:not(.has-3d) .tag { display: none; }
   color: var(--paper);
 }
 .demo .live { grid-column: 1 / -1; }
+/* Ficha técnica: cuatro datos en dos columnas, alineados entre materiales. */
+.demo .live.specs {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 1.8em;
+  row-gap: 0.3em;
+}
 
 /* ---------- controles del presentador ---------- */
 .controls {
@@ -310,7 +323,8 @@ html:not(.is-ready) .deck { visibility: hidden; }
 @media print {
   html, body { height: auto; overflow: visible; background: var(--ink); }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #gl, .controls, .boot, .blank, .tag { display: none !important; }
+  #gl, .controls, .boot, .blank, .tag:not(.tag--pinned) { display: none !important; }
+  .tag--pinned { opacity: 1 !important; transform: translate(6px, 18px) !important; }
   .deck { visibility: visible !important; height: auto; }
   .slide {
     display: grid !important;

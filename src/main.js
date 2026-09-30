@@ -210,7 +210,13 @@ function tick(now) {
     const tag = el.querySelector(`[data-tag="${name}"]`);
     if (tag) {
       tag.classList.toggle('is-on', !!o.tag);
-      if (o.tag) tag.style.transform = `translate(${o.tag.x.toFixed(1)}px, ${(o.tag.y - tag.offsetHeight / 2).toFixed(1)}px)`;
+      if (o.tag) {
+        // Si no cabe a la derecha del punto, la etiqueta se da vuelta hacia la izquierda.
+        const flip = o.tag.x + tag.offsetWidth > el.clientWidth;
+        tag.classList.toggle('is-flipped', flip);
+        const x = flip ? o.tag.x - tag.offsetWidth : o.tag.x;
+        tag.style.transform = `translate(${x.toFixed(1)}px, ${(o.tag.y - tag.offsetHeight / 2).toFixed(1)}px)`;
+      }
     }
   }
 }
