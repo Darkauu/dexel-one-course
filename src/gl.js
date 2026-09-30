@@ -6,6 +6,7 @@ import { VoxelTitle } from './voxelTitle.js';
 import { AdditiveDemo, SubtractiveDemo } from './demos.js';
 import { FdmDemo, ResinDemo } from './tech.js';
 import { PlaDemo, PetgDemo, TpuDemo } from './materials.js';
+import { PrototypeDemo, SparePartDemo, DecorDemo, DailyDemo } from './uses.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -17,6 +18,10 @@ const SCENES = {
   pla: PlaDemo,
   petg: PetgDemo,
   tpu: TpuDemo,
+  prototype: PrototypeDemo,
+  spare: SparePartDemo,
+  decor: DecorDemo,
+  daily: DailyDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión

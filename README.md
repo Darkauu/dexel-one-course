@@ -51,6 +51,7 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - `src/tech.js` — punto 02: dioramas de FDM y resina.
 - `src/materials.js` — punto 03: PLA, PETG y TPU (carrete + aplicación); PLA y TPU
   reciben la misma carga al mismo tiempo para comparar rigidez y elasticidad.
+- `src/uses.js` — punto 04: usos reales (prototipos, repuestos, decoración, día a día).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
