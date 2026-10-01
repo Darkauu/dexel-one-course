@@ -383,7 +383,7 @@
             <p class="micro hint">X y Z mueven la boquilla; Y mueve la cama</p>
           </div>
           <div class="phase-block" data-phase="3">
-            <p class="micro specs-head">Pasos por milímetro<button type="button" class="alert-btn" data-popup="pasos" aria-label="¿Qué son los pasos?" aria-haspopup="dialog">!</button></p>
+            <p class="micro specs-head">Pasos por milímetro<span class="specs-actions"><button type="button" class="alert-btn" data-popup="pasos" aria-label="¿Qué son los pasos?" aria-haspopup="dialog">!</button><button type="button" class="sim-btn" data-popup="sim-pasos" aria-haspopup="dialog">Simulación</button></span></p>
             <dl class="specs-list"><div><dt class="micro">Pasos/mm X</dt><dd>80</dd></div><div><dt class="micro">Pasos/mm Y</dt><dd>80</dd></div><div><dt class="micro">Pasos/mm Z</dt><dd>400</dd></div><div><dt class="micro">Pasos/mm E</dt><dd>93</dd></div></dl>
             <p class="micro hint">Z necesita 5× más pasos: el husillo sube despacio y con fuerza</p>
           </div>
@@ -430,27 +430,41 @@
     </div>
     <div class="popup-body">
       <h2 id="popup-pasos-title">¿Qué son los pasos?</h2>
-      <svg class="popup-art" viewBox="0 0 560 250" role="img" aria-label="Motor paso a paso que avanza en saltos de 1,8 grados y polea que convierte una vuelta en 40 mm de correa">
-        <rect x="20" y="25" width="200" height="200" fill="var(--paper-shade)"/>
-        <circle cx="120" cy="125" r="88" fill="var(--ink-deep)"/>
-        <g stroke="var(--peach)" stroke-width="3"><line x1="192.0" y1="125.0" x2="202.0" y2="125.0"/><line x1="191.1" y1="136.3" x2="201.0" y2="137.8"/><line x1="188.5" y1="147.2" x2="198.0" y2="150.3"/><line x1="184.2" y1="157.7" x2="193.1" y2="162.2"/><line x1="178.2" y1="167.3" x2="186.3" y2="173.2"/><line x1="170.9" y1="175.9" x2="178.0" y2="183.0"/><line x1="162.3" y1="183.2" x2="168.2" y2="191.3"/><line x1="152.7" y1="189.2" x2="157.2" y2="198.1"/><line x1="142.2" y1="193.5" x2="145.3" y2="203.0"/><line x1="131.3" y1="196.1" x2="132.8" y2="206.0"/><line x1="120.0" y1="197.0" x2="120.0" y2="207.0"/><line x1="108.7" y1="196.1" x2="107.2" y2="206.0"/><line x1="97.8" y1="193.5" x2="94.7" y2="203.0"/><line x1="87.3" y1="189.2" x2="82.8" y2="198.1"/><line x1="77.7" y1="183.2" x2="71.8" y2="191.3"/><line x1="69.1" y1="175.9" x2="62.0" y2="183.0"/><line x1="61.8" y1="167.3" x2="53.7" y2="173.2"/><line x1="55.8" y1="157.7" x2="46.9" y2="162.2"/><line x1="51.5" y1="147.2" x2="42.0" y2="150.3"/><line x1="48.9" y1="136.3" x2="39.0" y2="137.8"/><line x1="48.0" y1="125.0" x2="38.0" y2="125.0"/><line x1="48.9" y1="113.7" x2="39.0" y2="112.2"/><line x1="51.5" y1="102.8" x2="42.0" y2="99.7"/><line x1="55.8" y1="92.3" x2="46.9" y2="87.8"/><line x1="61.8" y1="82.7" x2="53.7" y2="76.8"/><line x1="69.1" y1="74.1" x2="62.0" y2="67.0"/><line x1="77.7" y1="66.8" x2="71.8" y2="58.7"/><line x1="87.3" y1="60.8" x2="82.8" y2="51.9"/><line x1="97.8" y1="56.5" x2="94.7" y2="47.0"/><line x1="108.7" y1="53.9" x2="107.2" y2="44.0"/><line x1="120.0" y1="53.0" x2="120.0" y2="43.0"/><line x1="131.3" y1="53.9" x2="132.8" y2="44.0"/><line x1="142.2" y1="56.5" x2="145.3" y2="47.0"/><line x1="152.7" y1="60.8" x2="157.2" y2="51.9"/><line x1="162.3" y1="66.8" x2="168.2" y2="58.7"/><line x1="170.9" y1="74.1" x2="178.0" y2="67.0"/><line x1="178.2" y1="82.7" x2="186.3" y2="76.8"/><line x1="184.2" y1="92.3" x2="193.1" y2="87.8"/><line x1="188.5" y1="102.8" x2="198.0" y2="99.7"/><line x1="191.1" y1="113.7" x2="201.0" y2="112.2"/></g>
-        <g class="step-needle"><line x1="120" y1="125" x2="120" y2="57" stroke="var(--alert-yellow)" stroke-width="7" stroke-linecap="square"/></g>
-        <circle cx="120" cy="125" r="14" fill="var(--peach)"/>
-        <text x="120" y="241" text-anchor="middle" fill="var(--paper)" font-family="JetBrains Mono, monospace" font-size="15" letter-spacing="1">1 PASO = 1,8°</text>
-        <path d="M232 125 H 330" stroke="var(--peach)" stroke-width="4" stroke-dasharray="8 6"/>
-        <path d="M322 115 L 336 125 L 322 135" fill="var(--peach)"/>
-        <g class="step-pulley"><circle cx="394" cy="125" r="50" fill="var(--paper-shade)"/><g fill="var(--paper-shade)"><rect x="390" y="69" width="8" height="8" transform="rotate(0 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(18 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(36 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(54 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(72 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(90 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(108 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(126 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(144 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(162 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(180 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(198 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(216 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(234 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(252 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(270 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(288 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(306 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(324 394 125)"/><rect x="390" y="69" width="8" height="8" transform="rotate(342 394 125)"/></g><circle cx="394" cy="125" r="12" fill="var(--ink-deep)"/></g>
-        <rect x="340" y="62" width="200" height="8" fill="var(--ender-blue)"/>
-        <rect x="340" y="180" width="200" height="8" fill="var(--ender-blue)"/>
-        <text x="470" y="226" text-anchor="middle" fill="var(--paper)" font-family="JetBrains Mono, monospace" font-size="15" letter-spacing="1">1 VUELTA = 40 MM</text>
-      </svg>
-      <p>Un motor <b>paso a paso</b> no gira de forma continua: avanza en saltos fijos de 1,8°, es decir <b>200 pasos por vuelta</b>. La placa divide cada paso en 16 <b>micropasos</b> para que el movimiento sea suave: 3200 por vuelta.</p>
-      <ul>
-        <li><b>Pasos/mm</b>: cuántos micropasos hay que dar para mover el eje 1 mm.</li>
-        <li><b>X e Y</b>: la polea de 20 dientes mueve 40 mm de correa por vuelta → 3200 ÷ 40 = <b>80</b>.</li>
-        <li><b>Z</b>: el husillo T8 sube 8 mm por vuelta → 3200 ÷ 8 = <b>400</b>.</li>
-        <li><b>E</b>: depende del engranaje del extrusor (≈ 93). Se calibra: pide 100 mm de filamento y mide cuánto entró.</li>
-      </ul>
+      <p>El motor paso a paso <b>no gira libre como una rueda</b>: avanza a saltos, como la manecilla de un reloj. Cada salto es un <b>micropaso (mS)</b>, y todos miden exactamente lo mismo.</p>
+      <p class="popup-key">En esta impresora, <b>80 mS equivalen exactamente a 1 mm</b>.</p>
+      <p>Cuando la máquina necesita mover el cabezal 1 mm, <b>no mide ni comprueba nada</b>: envía 80 pulsos al motor y da por hecho que el cabezal llegó. Cuenta hasta 80 y sigue con la siguiente instrucción. Así es como una pieza sale con las medidas que configuraste.</p>
+      <div class="popup-callout">
+        <p class="micro">Una falla típica</p>
+        <p>Si algo impide uno de los micropasos —una correa floja, una pieza que estorba— el motor no avanza, <b>pero la placa cuenta igual</b>. Desde ahí la impresora cree estar en un lugar donde no está, y todo lo que imprima encima sale corrido: son las <b>capas desplazadas</b>.</p>
+      </div>
+      <p class="popup-foot">Por eso importan tanto la tensión de las correas y que nada estorbe en los ejes. Pruébalo en la <b>Simulación</b>.</p>
+    </div>
+  </dialog>
+
+
+  <dialog class="popup popup--wide" id="popup-sim-pasos" aria-labelledby="popup-sim-title">
+    <div class="popup-bar">
+      <p class="micro">Simulación / Motor paso a paso</p>
+      <button type="button" class="popup-close" data-popup-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="popup-body stepsim" data-stepsim>
+      <div class="sim-top">
+        <h2 id="popup-sim-title">Cuenta hasta 80</h2>
+        <p class="sim-counter" aria-live="off">Micropasos: <b data-sim-count>0</b> / 80</p>
+      </div>
+      <svg class="sim-art" viewBox="0 70 760 214" role="img" aria-label="Eje visto de frente: polea dentada, correa, cabezal y regla en milímetros"></svg>
+      <p class="sim-compare">La impresora cree: <b data-sim-believed>0,00 mm</b> · Realidad: <b data-sim-actual>0,00 mm</b> <span class="micro">· Movimientos <b data-sim-moves>0</b></span></p>
+      <p class="sim-note" data-sim-note></p>
+      <div class="sim-controls">
+        <button type="button" class="sim-action sim-action--main" data-sim-action="move">Mover 1 mm</button>
+        <label class="sim-speed">
+          <span class="micro">Paso a paso visible</span>
+          <input type="range" min="0" max="100" value="100" data-sim-speed aria-label="Velocidad">
+          <span class="micro">Velocidad real</span>
+        </label>
+        <button type="button" class="sim-action" data-sim-action="slack" aria-pressed="false">Simular correa floja</button>
+        <button type="button" class="sim-action" data-sim-action="reset">Reiniciar</button>
+      </div>
     </div>
   </dialog>
 

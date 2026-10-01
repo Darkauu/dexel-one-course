@@ -1,6 +1,7 @@
 // Deck: un reloj, un manejador de entrada, un contexto WebGL.
 // Todo el estado visual es función pura de (diapositiva, paso) + tiempo desde que se entró.
 import { damp } from './shared.js';
+import { StepSim } from './stepsim.js';
 
 const html = document.documentElement;
 const params = new URLSearchParams(location.search);
@@ -153,6 +154,13 @@ function onInput(e) {
       return;
     }
     case 'click': {
+      // Controles de una simulación (dentro de su ventana).
+      const act = e.target.closest('[data-sim-action]');
+      if (act) {
+        const sim = simFor(act);
+        if (sim) ({ move: () => sim.move(), reset: () => sim.reset(), slack: () => sim.toggleSlack() })[act.dataset.simAction]?.();
+        return;
+      }
       // Alerta «!» → abre su ventana. X o clic fuera (en el fondo) → la cierra.
       const opener = e.target.closest('[data-popup]');
       if (opener) {
@@ -171,10 +179,19 @@ function onInput(e) {
       if (b) (b.dataset.nav === 'next' ? next : prev)();
       return;
     }
+    case 'input': {
+      const speed = e.target.closest?.('[data-sim-speed]');
+      if (speed) simFor(speed)?.setSpeed(+speed.value);
+      return;
+    }
     case 'hashchange':
       readHash(); state.enteredAt = clock.time; render();
   }
 }
+// Simulaciones (p. ej. el motor paso a paso): las mueve este mismo reloj.
+const sims = [...document.querySelectorAll('[data-stepsim]')].map((el) => ({ el, dialog: el.closest('dialog'), sim: new StepSim(el) }));
+const simFor = (node) => sims.find((x) => x.el.contains(node))?.sim;
+
 let swipe = null;
 let orbit = null;    // arrastre en curso sobre un escenario giratorio
 let pending = null;  // arrastre que terminó y aún no se entregó
@@ -182,7 +199,7 @@ let zoom = null;     // zoom acumulado del fotograma (rueda o pellizco)
 let pinch = 0;       // distancia previa entre los dos dedos
 const touches = new Map(); // dedos apoyados sobre un escenario giratorio
 const popupOpen = () => !!document.querySelector('dialog.popup[open]');
-['keydown', 'pointermove', 'pointerdown', 'pointerup', 'pointercancel', 'click', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
+['keydown', 'pointermove', 'pointerdown', 'pointerup', 'pointercancel', 'click', 'input', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
 window.addEventListener('wheel', onInput, { passive: false });
 document.documentElement.addEventListener('pointerleave', onInput);
 
@@ -239,9 +256,13 @@ function tick(now) {
   // Puntero amortiguado: lo comparten el subtítulo 2.5D, el campo y las cámaras.
   pointer.nx = damp(pointer.nx, pointer.tx, 0.35, dt);
   pointer.ny = damp(pointer.ny, pointer.ty, 0.35, dt);
-  html.style.setProperty('--px', pointer.nx.toFixed(4));
-  html.style.setProperty('--py', pointer.ny.toFixed(4));
+  if (!reduceMotion) {
+    html.style.setProperty('--px', pointer.nx.toFixed(4));
+    html.style.setProperty('--py', pointer.ny.toFixed(4));
+  }
   controls.classList.toggle('is-idle', clock.time - lastMove > 2.5);
+
+  for (const x of sims) if (!x.dialog || x.dialog.open) x.sim.update(dt);
 
   if (!gl || printing) return;
 
@@ -346,8 +367,9 @@ async function boot() {
   html.classList.add('is-ready');
   state.enteredAt = clock.time;
 
-  // Con movimiento reducido no se monta el reloj: la página queda quieta y completa.
-  if (!reduceMotion) requestAnimationFrame(tick);
+  // El reloj corre siempre: con movimiento reducido no hay 3D ni parallax (el CSS los
+  // anula), pero las simulaciones que el usuario pone en marcha siguen funcionando.
+  requestAnimationFrame(tick);
 }
 
 // Imprimir = estado final de cada diapositiva, sin capa 3D.
