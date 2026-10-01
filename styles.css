@@ -382,6 +382,9 @@ html.has-3d .stage--model.is-loading .loading { opacity: 1; }
 .schematic rect { fill: var(--peach-shade); }
 .slide[data-step="1"] .schematic rect, .slide[data-step="2"] .schematic rect, .slide[data-step="3"] .schematic rect { fill: #6A4550; }
 .slide[data-step="1"] .sch-frame rect, .slide[data-step="2"] .sch-axis rect, .slide[data-step="3"] .sch-motor rect { fill: var(--ender-blue); }
+.schematic path { fill: var(--peach-shade); }
+.slide[data-step="1"] .schematic path, .slide[data-step="2"] .schematic path, .slide[data-step="3"] .schematic path { fill: #6A4550; }
+.slide[data-step="1"] .sch-ext rect, .slide[data-step="2"] .sch-hot rect, .slide[data-step="3"] .sch-noz path { fill: var(--ender-blue); }
 
 /* ---------- controles del presentador ---------- */
 .controls {

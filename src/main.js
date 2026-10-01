@@ -35,8 +35,12 @@ function render() {
       b.classList.toggle('is-active', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    // Contador por sección: «01 / 02» dentro de la sección actual, no del deck entero.
     const counter = el.querySelector('[data-counter]');
-    if (counter) counter.textContent = `${pad(state.slide + 1)} / ${pad(slides.length)}`;
+    if (counter) {
+      const same = slides.filter((x) => x.dataset.section === el.dataset.section);
+      counter.textContent = `${pad(same.indexOf(el) + 1)} / ${pad(same.length)}`;
+    }
   });
   const first = state.slide === 0 && state.step === 0;
   const last = state.slide === slides.length - 1 && state.step === stepsOf(slides[state.slide]) - 1;
@@ -310,11 +314,23 @@ function tick(now) {
     el.classList.toggle('is-loading', !!o.loading);
     // Etiquetas múltiples (data-pin) proyectadas sobre piezas del modelo.
     if (o.pins) {
-      el.querySelectorAll('[data-pin]').forEach((pin) => {
-        const at = o.pins[pin.dataset.pin];
-        pin.classList.toggle('is-on', !!at);
-        if (at) pin.style.transform = `translate(${at.x.toFixed(1)}px, ${(at.y - pin.offsetHeight / 2).toFixed(1)}px)`;
-      });
+      // Piezas vecinas: si dos etiquetas se pisan, la de abajo baja lo justo.
+      const placed = [];
+      [...el.querySelectorAll('[data-pin]')]
+        .map((pin) => ({ pin, at: o.pins[pin.dataset.pin] }))
+        .sort((a, b) => (a.at?.y ?? 0) - (b.at?.y ?? 0))
+        .forEach(({ pin, at }) => {
+          pin.classList.toggle('is-on', !!at);
+          if (!at) return;
+          const w = pin.offsetWidth, h = pin.offsetHeight;
+          let y = at.y - h / 2;
+          for (const p of placed) {
+            const overlapX = at.x < p.x + p.w && p.x < at.x + w;
+            if (overlapX && y < p.y + p.h + 4 && y + h > p.y) y = p.y + p.h + 4;
+          }
+          placed.push({ x: at.x, y, w, h });
+          pin.style.transform = `translate(${at.x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        });
     }
     const live = slide.querySelector(`[data-live="${name}"]`);
     if (live) setText(live, o.live);
