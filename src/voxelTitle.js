@@ -144,6 +144,10 @@ function buildFormation(lines) {
   throw new Error('Título demasiado largo para el presupuesto de cubos');
 }
 
+// Color final de cada acento de sección (la onda arcoíris termina en él).
+const ACCENTS = { 'ENDER 3 PRO': '#7FC8F8' };
+const accentColorFor = (text) => ACCENTS[text] || '#7FC8F8';
+
 export class VoxelTitle {
   constructor() {
     this.scene = new THREE.Scene();
@@ -159,8 +163,10 @@ export class VoxelTitle {
     // hacia el puntero, muro y letras giran juntos y ninguna letra lo atraviesa.
     this.clipLocal = new THREE.Plane(new THREE.Vector3(0, 0, 1), -WALL_Z - 0.05);
     this.clip = this.clipLocal.clone();
+    // Blanco en el material: el color real va por instancia (papel, o el acento
+    // de la sección con su onda arcoíris).
     const mat = new THREE.MeshStandardMaterial({
-      color: PALETTE.paper, roughness: 0.62, metalness: 0, clippingPlanes: [this.clip],
+      color: '#ffffff', roughness: 0.62, metalness: 0, clippingPlanes: [this.clip],
     });
     // Caras interiores fuera: con la palabra armada, una cara que toca a un vecino del
     // mismo glifo se colapsa en el shader. Sin caras ocultas no hay z-fighting en los
@@ -179,6 +185,8 @@ export class VoxelTitle {
     this.hide = new THREE.InstancedBufferAttribute(new Float32Array(BUDGET), 1);
     geo.setAttribute('aHide', this.hide);
     this.mesh = new THREE.InstancedMesh(geo, mat, BUDGET);
+    this.paper = new THREE.Color(PALETTE.paper);
+    for (let i = 0; i < BUDGET; i++) this.mesh.setColorAt(i, this.paper);
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = false; // la sombra propia entre cubos dibujaba costuras
     this.mesh.frustumCulled = false;
@@ -202,6 +210,12 @@ export class VoxelTitle {
     this.boxes = [];      // caja de cada glifo en coordenadas de la palabra
     this.push = new Float32Array(64);
     this.delay = new Float32Array(BUDGET);
+    this.accD = new Float32Array(BUDGET).fill(-1); // distancia al centro de la línea acento
+    this.accent = null;   // { color, max, start } de la onda arcoíris
+    this.section = null;
+    this.pending = null;  // palabra que entra cuando la anterior termina de salir
+    this.exitAt = 0;
+    this.tmpC = new THREE.Color();
     this.used = 0;
     this.settleAt = Infinity;
     this.key_ = null;
@@ -218,16 +232,39 @@ export class VoxelTitle {
   }
 
   // Re-apunta las instancias a una nueva palabra. Mismo texto → nada cambia.
-  setLines(lines, time) {
-    const key = lines.join('|');
+  // Cambio de SECCIÓN: la palabra vuelve al muro y la nueva se arma desde él,
+  // igual que la entrada inicial. Mismo título con otros cortes (p. ej. al girar
+  // la pantalla): se re-apunta sin salir.
+  setLines(lines, time, { section = null, accent = null } = {}) {
+    const key = `${section}|${lines.join('|')}`;
     if (key === this.key_) return;
     this.key_ = key;
+    const opts = { lines, accent };
+    if (this.born >= 0 && section !== this.section) {
+      this.section = section;
+      this.pending = opts;
+      this.exitAt = time;
+      this.settleAt = Infinity; // los cubos se mueven sueltos: todas sus caras a la vista
+      return;
+    }
+    this.section = section;
+    this.build(opts, time, this.born < 0);
+  }
+
+  build({ lines, accent }, time, assemble) {
     const f = buildFormation(lines);
     const { cols, rows } = f.grid;
     this.size = { w: cols, h: rows };
     this.stats = { cubes: f.count, cols, rows, px: f.px };
 
-    const first = this.born < 0;
+    const first = assemble;
+    // Línea acento (p. ej. «ENDER 3 PRO»): sus celdas y su centro horizontal.
+    const accentLine = accent ? lines.findIndex((l) => l === accent) : -1;
+    let aMin = Infinity, aMax = -Infinity;
+    if (accentLine >= 0) {
+      for (const c of f.cells) if (f.grid.lineOf[c.r] === accentLine) { aMin = Math.min(aMin, c.q); aMax = Math.max(aMax, c.q); }
+    }
+    const aMid = (aMin + aMax) / 2;
     // Máscara de vecinos del mismo glifo: +x 1, -x 2, +y 4, -y 8, +z 16, -z 32.
     const same = (q, r, k, g) => q >= 0 && r >= 0 && q < cols && r < rows
       && f.depth[r * cols + q] > k && f.label[r * cols + q] === g;
@@ -255,6 +292,7 @@ export class VoxelTitle {
         }
         this.tscl[i] = 1;
         this.glyph[i] = f.label[c.i];
+        this.accD[i] = accentLine >= 0 && f.grid.lineOf[c.r] === accentLine ? Math.abs(c.q + 0.5 - aMid) : -1;
         this.hide.array[i] = mask(c.q, c.r, k, c.d);
         this.delay[i] = (c.q / cols) * 1.0 + (k / DEPTH) * 0.08 + ((c.r * 7 + c.q * 13) % 11) * 0.012;
         i++;
@@ -273,6 +311,14 @@ export class VoxelTitle {
     this.settleAt = time + (first ? 0.2 + 1.2 + 2.3 : 0.9);
     if (first) this.born = time;
 
+    // Colores: papel; la línea acento recibe una sola onda arcoíris desde su centro
+    // hacia afuera cuando termina de armarse, y queda en el color de la sección.
+    for (let n = 0; n < BUDGET; n++) this.mesh.setColorAt(n, this.paper);
+    this.mesh.instanceColor.needsUpdate = true;
+    this.accent = accentLine >= 0
+      ? { color: new THREE.Color(accentColorFor(accent)), max: (aMax - aMin) / 2 + 1, start: (first ? time + 3.0 : time + 0.4), done: false }
+      : null;
+
     // Sombra: la cámara de sombra cubre la palabra entera.
     const s = Math.max(cols, rows) * 0.62 + 8;
     const sc = this.key.shadow.camera;
@@ -281,6 +327,26 @@ export class VoxelTitle {
     sc.updateProjectionMatrix();
     this.lightDir = new THREE.Vector3(-0.45, 0.55, 1).multiplyScalar(s * 1.6);
     this.wall.scale.set(cols * 3, rows * 5, 1);
+  }
+
+  // Onda arcoíris: un solo frente que sale del centro de la línea acento; detrás
+  // del frente queda el color de la sección, delante sigue el papel.
+  waveColors(time) {
+    const a = this.accent;
+    if (!a || a.done || time < a.start) return;
+    const BAND = 9;
+    const r = (time - a.start) * ((a.max + BAND) / 1.3);
+    const c = this.tmpC;
+    for (let i = 0; i < this.used; i++) {
+      const d = this.accD[i];
+      if (d < 0) continue;
+      if (d > r) c.copy(this.paper);
+      else if (d < r - BAND) c.copy(a.color);
+      else c.setHSL(((r - d) / BAND) * 0.83, 0.85, 0.6);
+      this.mesh.setColorAt(i, c);
+    }
+    this.mesh.instanceColor.needsUpdate = true;
+    if (r > a.max + BAND) a.done = true;
   }
 
   // rect: caja de la zona del título (px CSS); view: viewport con margen donde se dibuja.
@@ -340,6 +406,14 @@ export class VoxelTitle {
       this.push[g] = damp(this.push[g], f * PUSH, f * PUSH > this.push[g] ? 0.12 : 0.4, dt);
     }
     const arr = this.mesh.instanceMatrix.array;
+    // Salida hacia el muro (cambio de sección); al terminar entra la palabra nueva.
+    const EXIT = 0.8;
+    if (this.pending && time - this.exitAt >= EXIT) {
+      const next = this.pending;
+      this.pending = null;
+      this.build(next, time, true);
+    }
+    this.waveColors(time);
     const age = this.born < 0 ? 0 : time - this.born;
     this.settled.value = time >= this.settleAt ? 1 : 0;
     const used = this.used;
@@ -348,7 +422,13 @@ export class VoxelTitle {
       const tx = this.tgt[j], ty = this.tgt[j + 1];
       let tz = this.tgt[j + 2];
 
-      if (i < used) {
+      if (i < used && this.pending) {
+        // Vuelve al muro barriendo de derecha a izquierda (la inversa de la entrada).
+        const e = (time - this.exitAt - (1 - this.delay[i] / 1.2) * 0.3) / 0.5;
+        const k = e <= 0 ? 0 : e >= 1 ? 1 : e * e;
+        this.cur[j + 2] = tz + this.push[this.glyph[i]] - k * (tz - (WALL_Z - 30));
+        this.scl[i] = 1;
+      } else if (i < used) {
         // Solo en Z: la retícula XY nunca se rompe.
         tz += this.push[this.glyph[i]];
 

@@ -43,6 +43,8 @@
      ink-deep: 13,2 : 1 y 8,1 : 1. Nunca como color de texto corrido. */
   --alert-yellow: #FFD23F;
   --alert-orange: #FF8A1F;
+  /* Sección 02 (Ender 3 Pro): azul claro. Sobre ink 9,6 : 1; ink sobre él igual. */
+  --ender-blue: #7FC8F8;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -259,6 +261,61 @@ html:not(.has-3d) .tag--pinned { display: block; opacity: 1; transform: translat
   row-gap: 0.3em;
 }
 
+/* ---------- anatomía: modelo al centro, textos a los lados, fases abajo ---------- */
+.voxel-title .accent { color: var(--ender-blue); }
+html.has-3d .voxel-title .accent { color: transparent; }
+.slide--anatomy { grid-template-rows: minmax(0, 23fr) auto minmax(0, 60fr) auto; }
+.anatomy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1fr);
+  column-gap: clamp(16px, 2.4vw, 48px);
+  min-height: 0;
+}
+.side { align-self: center; display: grid; }
+.side .phase-block { grid-area: 1 / 1; display: grid; gap: 0.55em; }
+.side .phase-block[hidden] { display: none; }
+.side h3 {
+  margin: 0; font-weight: 900; text-transform: uppercase; line-height: 0.92;
+  font-size: clamp(22px, min(2.6vw, 4.4vh), 56px);
+  color: var(--ender-blue);
+}
+.side .body { margin: 0; max-width: 34ch; font-size: clamp(15px, min(1.3vw, 2.3vh), 26px); line-height: 1.25; }
+.specs-list { margin: 0; display: grid; gap: 0.7em; }
+.specs-list div { border-top: 2px solid var(--peach-shade); padding-top: 0.35em; }
+.specs-list dt { margin-bottom: 0.15em; }
+.specs-list dd { margin: 0; font-weight: 800; font-size: clamp(16px, min(1.45vw, 2.6vh), 30px); }
+.side .hint { color: var(--peach-shade); margin-top: 0.4em; }
+
+.stage--model { cursor: grab; touch-action: none; }
+.stage--model.is-grabbing { cursor: grabbing; }
+.stage--model .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.3s; }
+html.has-3d .stage--model.is-loading .loading { opacity: 1; }
+.pin { border-left-color: var(--ender-blue); }
+.pin b { color: var(--ender-blue); }
+
+.phases { display: flex; justify-content: center; gap: clamp(8px, 1.2vw, 18px); flex-wrap: wrap; }
+.phases button {
+  display: inline-flex; align-items: baseline; gap: 0.6em;
+  padding: 0.55em 1.1em;
+  border: 2px solid var(--peach);
+  background: var(--ink-deep);
+  color: var(--paper);
+  font: 800 clamp(15px, min(1.3vw, 2.3vh), 24px)/1 var(--f-display);
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.phases button .micro { color: var(--peach); }
+.phases button:hover, .phases button:focus-visible { outline: none; border-color: var(--ender-blue); }
+.phases button.is-active { background: var(--ender-blue); border-color: var(--ender-blue); color: var(--ink); }
+.phases button.is-active .micro { color: var(--ink); }
+
+/* Esquema de respaldo: responde a la fase igual que el modelo. */
+.schematic { width: 100%; height: 100%; }
+.schematic rect { fill: var(--peach-shade); }
+.slide[data-step="1"] .schematic rect, .slide[data-step="2"] .schematic rect, .slide[data-step="3"] .schematic rect { fill: #6A4550; }
+.slide[data-step="1"] .sch-frame rect, .slide[data-step="2"] .sch-axis rect, .slide[data-step="3"] .sch-motor rect { fill: var(--ender-blue); }
+
 /* ---------- controles del presentador ---------- */
 .controls {
   position: fixed;
@@ -391,6 +448,9 @@ html:not(.is-ready) .deck { visibility: hidden; }
     grid-template-rows: 24svh auto auto;
   }
   .compare, .compare--3, .compare--4 { grid-template-columns: 1fr; grid-template-rows: none; }
+  .slide--anatomy { grid-template-rows: 24svh auto auto auto; }
+  .anatomy { grid-template-columns: 1fr; row-gap: 16px; }
+  .stage--model { height: 46svh; order: -1; }
   .stage { height: 34svh; }
   .controls { bottom: 16px; }
 }
