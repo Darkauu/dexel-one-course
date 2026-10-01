@@ -45,6 +45,7 @@
   --alert-orange: #FF8A1F;
   /* Sección 02 (Ender 3 Pro): azul claro. Sobre ink 9,6 : 1; ink sobre él igual. */
   --ender-blue: #7FC8F8;
+  --pin-orange: #FF7A1A;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -357,8 +358,10 @@ html.has-3d .voxel-title .accent { color: transparent; }
 .stage--model.is-grabbing { cursor: grabbing; }
 .stage--model .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.3s; }
 html.has-3d .stage--model.is-loading .loading { opacity: 1; }
-.pin { border-left-color: var(--ender-blue); }
-.pin b { color: var(--ender-blue); }
+/* Etiquetas sobre piezas: naranja fuerte, contrasta con el azul del resaltado
+   y con el modelo (6,7 : 1 sobre ink). */
+.pin { border-left-color: var(--pin-orange); border-left-width: 3px; }
+.pin b { color: var(--pin-orange); }
 
 .phases { display: flex; justify-content: center; gap: clamp(8px, 1.2vw, 18px); flex-wrap: wrap; }
 .phases button {

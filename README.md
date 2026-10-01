@@ -98,8 +98,10 @@ mueve el reloj único del deck mientras su ventana está abierta.
 - `src/ender.js` — sección 02: el modelo `src/assets/creality-ender-3-pro.glb`
   (embebido en el bundle, así funciona desde `file://`; se decodifica una vez y cada
   punto usa una copia), pintado como maqueta. `POINTS` define las fases de cada punto:
-  qué piezas resalta (`PARTS`), qué etiquetas muestra (`data-pin`), qué oculta (p. ej.
-  la carcasa del hotend) y hacia dónde se acerca la cámara (`view`).
+  qué piezas resalta (`PARTS`), qué etiquetas muestra (`data-pin`), qué retira (`hide`:
+  la carcasa del ventilador se desliza hacia afuera en vez de desaparecer), qué flujos
+  de filamento anima (`flows`: `feed` por el extrusor, `melt` saliendo de la boquilla)
+  y hacia dónde se acerca la cámara (`view`).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
