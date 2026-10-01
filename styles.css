@@ -5,6 +5,7 @@
 @font-face { font-family: "Archivo"; font-weight: 800; font-display: block; src: url("vendor/fonts/archivo-latin-800-normal.woff2") format("woff2"); }
 @font-face { font-family: "Archivo"; font-weight: 900; font-display: block; src: url("vendor/fonts/archivo-latin-900-normal.woff2") format("woff2"); }
 @font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: block; src: url("vendor/fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 800; font-display: block; src: url("vendor/fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2"); }
 
 /* ------------------------------------------------------------------
    Paleta por rol. Cada tono se sombrea hacia su propio vecino, nunca
@@ -358,10 +359,16 @@ html.has-3d .voxel-title .accent { color: transparent; }
 .stage--model.is-grabbing { cursor: grabbing; }
 .stage--model .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.3s; }
 html.has-3d .stage--model.is-loading .loading { opacity: 1; }
-/* Etiquetas sobre piezas: naranja fuerte, contrasta con el azul del resaltado
-   y con el modelo (6,7 : 1 sobre ink). */
-.pin { border-left-color: var(--pin-orange); border-left-width: 3px; }
-.pin b { color: var(--pin-orange); }
+/* Etiquetas sobre piezas: texto blanco (paper) en negrita, 15 : 1 sobre ink; la
+   sombra en ink lo separa del modelo cuando pasa por encima de una pieza clara.
+   La barra lateral queda en naranja fuerte (6,7 : 1 sobre ink). */
+.pin {
+  border-left-color: var(--pin-orange); border-left-width: 3px;
+  color: var(--paper); font-weight: 800;
+  text-shadow: 0 0 3px var(--ink-deep), 0 1px 2px var(--ink-deep);
+}
+.pin b { color: var(--paper); font-weight: 800; }
+.pin.is-flipped { border-right-color: var(--pin-orange); border-right-width: 3px; }
 
 .phases { display: flex; justify-content: center; gap: clamp(8px, 1.2vw, 18px); flex-wrap: wrap; }
 .phases button {
