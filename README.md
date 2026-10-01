@@ -35,6 +35,28 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - Código: `src/`. Después de editar, `npm install && npm run build` regenera
   `dist/deck.js` (esbuild, un solo script clásico: funciona desde `file://`).
 
+## Componentes
+
+**Alerta «!» con ventana emergente.** Una casilla con un signo de exclamación que
+oscila entre amarillo y naranja; al tocarla abre una ventana centrada. Se cierra
+con la X, con Esc o tocando fuera. Mientras está abierta, las flechas no cambian
+de diapositiva. Para agregar una nueva:
+
+```html
+<button type="button" class="alert-btn" data-popup="tema" aria-label="¿Qué es …?">!</button>
+
+<dialog class="popup" id="popup-tema" aria-labelledby="popup-tema-title">
+  <div class="popup-bar">
+    <p class="micro">Info / …</p>
+    <button type="button" class="popup-close" data-popup-close aria-label="Cerrar">✕</button>
+  </div>
+  <div class="popup-body">
+    <h2 id="popup-tema-title">…</h2>
+    <!-- ilustración (svg.popup-art) y texto -->
+  </div>
+</dialog>
+```
+
 ## Parámetros de prueba
 
 - `?no3d` — ver el deck sin la capa WebGL (lo que ve un equipo sin GPU).

@@ -39,6 +39,10 @@
   --mat-pla: #EFEEE8;
   --mat-petg: #9ACBEA;
   --mat-tpu: #EE4F43;
+  /* Señal de juego: SOLO para el botón de alerta «!». Amarillo/naranja sobre
+     ink-deep: 13,2 : 1 y 8,1 : 1. Nunca como color de texto corrido. */
+  --alert-yellow: #FFD23F;
+  --alert-orange: #FF8A1F;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -286,6 +290,81 @@ html:not(.has-3d) .tag--pinned { display: block; opacity: 1; transform: translat
 }
 html.is-blank .blank { display: block; }
 
+/* ---------- alerta «!» + ventana emergente (componente reutilizable) ----------
+   Botón:   <button class="alert-btn" data-popup="ID" aria-label="…">!</button>
+   Ventana: <dialog class="popup" id="popup-ID"> … <button data-popup-close> …
+   Se cierra con la X, con Esc o tocando fuera de la ventana. */
+.alert-btn {
+  --c: var(--alert-yellow);
+  display: inline-grid;
+  place-items: center;
+  width: 1.9em; height: 1.9em;
+  margin-left: 0.7em;
+  vertical-align: middle;
+  padding: 0;
+  border: 3px solid var(--c);
+  background: var(--ink-deep);
+  color: var(--c);
+  font: 900 1.05em/1 var(--f-display);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 3px 3px 0 var(--ink), 0 0 12px var(--c);
+  animation: alert-color 1.2s ease-in-out infinite, alert-bob 1.2s ease-in-out infinite;
+}
+.alert-btn:hover, .alert-btn:focus-visible { outline: none; transform: scale(1.12); animation-play-state: paused; }
+@keyframes alert-color {
+  0%, 100% { --c: var(--alert-yellow); border-color: var(--alert-yellow); color: var(--alert-yellow); box-shadow: 3px 3px 0 var(--ink), 0 0 14px var(--alert-yellow); }
+  50% { --c: var(--alert-orange); border-color: var(--alert-orange); color: var(--alert-orange); box-shadow: 3px 3px 0 var(--ink), 0 0 14px var(--alert-orange); }
+}
+@keyframes alert-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+.popup {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  padding: 0;
+  border: 4px solid var(--peach);
+  background: var(--ink-deep);
+  color: var(--paper);
+  box-shadow: 8px 8px 0 var(--ink), 0 0 0 4px var(--ink-deep), 0 30px 80px rgba(0, 0, 0, 0.6);
+  overflow: auto;
+}
+.popup::backdrop { background: rgba(20, 0, 7, 0.74); }
+.popup[open] { animation: popup-in 0.32s cubic-bezier(0.2, 1.4, 0.4, 1); }
+@keyframes popup-in { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.popup-bar {
+  display: flex; justify-content: space-between; align-items: center; gap: 1em;
+  padding: 10px 12px 10px 18px;
+  background: var(--peach);
+  color: var(--ink);
+}
+.popup-bar .micro { color: var(--ink); }
+.popup-close {
+  width: 38px; height: 38px;
+  border: 3px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: 900 20px/1 var(--f-display);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.popup-close:hover, .popup-close:focus-visible { outline: none; background: var(--alert-yellow); }
+.popup-body { padding: clamp(16px, 2.4vw, 32px); display: grid; gap: 18px; }
+.popup-body h2 { margin: 0; font-weight: 900; text-transform: uppercase; font-size: clamp(26px, 3.2vw, 44px); line-height: 0.95; }
+.popup-body p { margin: 0; font-size: clamp(15px, 1.35vw, 21px); line-height: 1.3; max-width: 52ch; }
+.popup-body ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.popup-body li::before { content: "▪"; color: var(--alert-yellow); margin-right: 0.6em; }
+.popup-art { width: 100%; height: auto; display: block; background: var(--ink); border: 2px solid var(--peach-shade); }
+/* Filamento que avanza por los tubos del AMS. */
+.ams-flow { stroke-dasharray: 10 8; animation: ams-flow 0.9s linear infinite; }
+@keyframes ams-flow { to { stroke-dashoffset: -18; } }
+.ams-out { animation: ams-swap 6s steps(1, end) infinite, ams-flow 0.9s linear infinite; stroke-dasharray: 10 8; }
+@keyframes ams-swap {
+  0% { stroke: var(--mat-pla); } 25% { stroke: var(--mat-petg); } 50% { stroke: var(--mat-tpu); } 75% { stroke: var(--peach); }
+}
+.ams-slot { animation: ams-slot 6s steps(1, end) infinite; opacity: 0; }
+.ams-slot--1 { animation-delay: -4.5s; } .ams-slot--2 { animation-delay: -3s; } .ams-slot--3 { animation-delay: -1.5s; }
+@keyframes ams-slot { 0% { opacity: 1; } 25%, 100% { opacity: 0; } }
+
 /* ---------- arranque: sostenido en la carga real de fuentes ---------- */
 .boot {
   position: fixed; inset: 0; z-index: 20;
@@ -318,6 +397,8 @@ html:not(.is-ready) .deck { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .subtitle { transform: none; }
+  .alert-btn, .popup[open], .ams-flow, .ams-out, .ams-slot { animation: none; }
+  .ams-slot--0 { opacity: 1; }
   .boot, .tag, .controls { transition: none; }
 }
 
@@ -326,7 +407,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
 @media print {
   html, body { height: auto; overflow: visible; background: var(--ink); }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  #gl, .controls, .boot, .blank, .tag:not(.tag--pinned) { display: none !important; }
+  #gl, .controls, .boot, .blank, .tag:not(.tag--pinned), .alert-btn, .popup { display: none !important; }
   .tag--pinned { opacity: 1 !important; transform: translate(6px, 18px) !important; }
   .deck { visibility: visible !important; height: auto; }
   .slide {
