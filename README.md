@@ -69,6 +69,11 @@ de diapositiva. Para agregar una nueva:
 </dialog>
 ```
 
+**Botón «Simulación»** (`.sim-btn`, rojo ↔ rojo claro): abre una ventana igual que
+la alerta (`data-popup="id"` → `#popup-id`). La simulación del motor paso a paso
+vive en `src/stepsim.js`; se monta en cualquier contenedor con `data-stepsim` y la
+mueve el reloj único del deck mientras su ventana está abierta.
+
 ## Parámetros de prueba
 
 - `?no3d` — ver el deck sin la capa WebGL (lo que ve un equipo sin GPU).
