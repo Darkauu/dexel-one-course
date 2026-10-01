@@ -265,6 +265,7 @@ function tick(now) {
     const eyebrow = titleZone.querySelector('.eyebrow');
     const inset = eyebrow ? eyebrow.offsetHeight + 6 : 0;
     zones.title = { x: r.x, y: r.y + inset, w: r.w, h: r.h - inset };
+    zones.titleBottom = r.y + r.h;
     gl.title.setLines(titleLinesFor(slide, zones.title), clock.time, {
       section: slide.dataset.section || null,
       accent: slide.dataset.titleAccent || null,

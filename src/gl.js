@@ -154,14 +154,11 @@ export class GLLayer {
     r.render(this.fieldScene, this.fieldCam);
 
     const out = {};
-    if (zones.title) {
-      const rect = zones.title;
-      const padX = rect.w * 0.03, padY = rect.h * 0.22;
-      const view = { x: rect.x - padX, y: rect.y - padY, w: rect.w + padX * 2, h: rect.h + padY * 2 };
-      this.title.frame(dt, time, rect, view, pointer);
-      this.pass(this.title.scene, this.title.camera, view);
-    }
-    for (const { name, rect } of zones.stages) {
+    // Orden: escenas a pantalla completa (detrás), luego el título, luego el resto.
+    const stages = [...zones.stages].sort((a, b) => Number(!!this.isFull(b.name)) - Number(!!this.isFull(a.name)));
+    let titleDone = false;
+    for (const { name, rect } of stages) {
+      if (!titleDone && !this.isFull(name)) { this.titlePass(dt, time, zones, pointer); titleDone = true; }
       const Scene = SCENES[name];
       if (!Scene) continue;
       if (!this.scenes.has(name)) this.scenes.set(name, new Scene());
@@ -169,13 +166,39 @@ export class GLLayer {
       // Escenas que se giran con el puntero: reciben el arrastre acumulado del fotograma.
       if (demo.drag && zones.drag && zones.drag.name === name) demo.drag(zones.drag.dx, zones.drag.dy);
       if (demo.zoomBy && zones.zoom && zones.zoom.name === name) demo.zoomBy(zones.zoom.f);
+      // Escenas «a pantalla completa» (el modelo de la Ender): se dibujan en toda la
+      // ventana, sin recorte, para que el zoom nunca las corte contra el borde de su
+      // contenedor. Su encuadre base se calcula sobre `frame`: del pie del título al
+      // pie del escenario, con el ancho del escenario.
+      if (Scene.fullFrame) {
+        const top = Math.min(rect.y, zones.titleBottom ?? rect.y);
+        const frame = { x: rect.x, y: top, w: rect.w, h: rect.y + rect.h - top };
+        const full = { x: 0, y: 0, w: this.size.w, h: this.size.h };
+        out[name] = demo.frame(dt, zones.sinceEnter % demo.period, frame, pointer, zones.step, full, rect);
+        this.pass(demo.scene, demo.camera, full);
+        continue;
+      }
       out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer, zones.step);
       // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
       if (demo.prepass) demo.prepass(this.renderer);
       this.pass(demo.scene, demo.camera, rect);
     }
+    if (!titleDone) this.titlePass(dt, time, zones, pointer);
     r.setScissorTest(false);
     return out;
+  }
+
+  titlePass(dt, time, zones, pointer) {
+    if (!zones.title) return;
+    const rect = zones.title;
+    const padX = rect.w * 0.03, padY = rect.h * 0.22;
+    const view = { x: rect.x - padX, y: rect.y - padY, w: rect.w + padX * 2, h: rect.h + padY * 2 };
+    this.title.frame(dt, time, rect, view, pointer);
+    this.pass(this.title.scene, this.title.camera, view);
+  }
+
+  isFull(name) {
+    return !!SCENES[name]?.fullFrame;
   }
 
   dispose() {

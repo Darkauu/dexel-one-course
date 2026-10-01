@@ -48,6 +48,9 @@ const PHASES = [
 ];
 
 export class EnderDemo {
+  // Se dibuja en toda la ventana (detrás del título): el zoom nunca lo recorta.
+  static fullFrame = true;
+
   constructor() {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.5, 400);
@@ -72,7 +75,7 @@ export class EnderDemo {
     this.orbit = { az: 0.6, el: 0.32, taz: 0.6, tel: 0.32 };
     // Foco bajo el centro del modelo: con la cámara elevada, el modelo queda más arriba
     // en el encuadre y la base no se corta.
-    this.focus = new THREE.Vector3(0, 5.2, 0);
+    this.focus = new THREE.Vector3(0, 6.0, 0);
     this.zoom = { k: 1, tk: 1 };
     this.proj = new THREE.Vector3();
     this.tmp = new THREE.Vector3();
@@ -160,7 +163,9 @@ export class EnderDemo {
     }
   }
 
-  frame(dt, tl, view, pointer, step = 0) {
+  // view: zona del encuadre base (px CSS). full: lo que realmente se dibuja (la
+  // ventana). stage: el contenedor DOM, al que se refieren las etiquetas.
+  frame(dt, tl, view, pointer, step = 0, full = view, stage = view) {
     this.applyPhase(step);
     const o = this.orbit;
     o.az = damp(o.az, o.taz, 0.18, dt);
@@ -168,13 +173,16 @@ export class EnderDemo {
     const cam = this.camera;
     cam.aspect = view.w / view.h;
     this.zoom.k = damp(this.zoom.k, this.zoom.tk, 0.15, dt);
-    const d = fitDistance(cam, 7.7, cam.aspect) * this.zoom.k;
+    const d = fitDistance(cam, 7.4, cam.aspect) * this.zoom.k;
     cam.position.set(
       this.focus.x + d * Math.cos(o.el) * Math.sin(o.az),
       this.focus.y + d * Math.sin(o.el),
       this.focus.z + d * Math.cos(o.el) * Math.cos(o.az),
     );
     cam.lookAt(this.focus);
+    // El frustum base encuadra `view`; se extiende a toda la ventana desplazándolo,
+    // así el modelo queda donde está la zona y lo que sobresale sigue visible.
+    cam.setViewOffset(view.w, view.h, full.x - view.x, full.y - view.y, full.w, full.h);
     cam.updateProjectionMatrix();
 
     // Etiquetas de la fase: proyectadas sobre su pieza; ocultas si quedan detrás.
@@ -185,10 +193,10 @@ export class EnderDemo {
         if (!a) continue;
         this.proj.copy(a).project(cam);
         if (this.proj.z > 1) continue;
-        const x = (this.proj.x * 0.5 + 0.5) * view.w, y = (-this.proj.y * 0.5 + 0.5) * view.h;
-        // Con zoom, una pieza puede quedar fuera del cuadro: su etiqueta no se sale del escenario.
-        if (x < 0 || y < 12 || x > view.w - 40 || y > view.h - 12) continue;
-        pins[id] = { x: x + 16, y };
+        // NDC → px de la ventana → px relativos al contenedor de las etiquetas.
+        const gx = full.x + (this.proj.x * 0.5 + 0.5) * full.w, gy = full.y + (-this.proj.y * 0.5 + 0.5) * full.h;
+        if (gx < 0 || gy < 12 || gx > full.w - 60 || gy > full.h - 12) continue; // fuera de la ventana
+        pins[id] = { x: gx - stage.x + 16, y: gy - stage.y };
       }
     }
     return { pins, loading: !this.ready && !this.failed };
