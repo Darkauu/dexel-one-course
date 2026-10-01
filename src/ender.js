@@ -46,6 +46,8 @@ const PARTS = {
   heaterBlock: { names: ['1_10', '1_9', '1_12', '2_3', '1_13', '2_4', '1_14'], under: 'Extruder_Assembly' },
   block: { name: '1_10', under: 'Extruder_Assembly' },
   nozzle: { name: '1_11', under: 'Extruder_Assembly' },
+  hotendInlet: { name: '1_16', under: 'Extruder_Assembly' },   // racor de entrada del hotend
+  extOutlet: { name: '1_26', under: 'Extruder_&_X_Axis_Assembly' }, // salida del extrusor
   // Carcasa y ventilador frontal: se quitan para ver el interior del hotend.
   shroud: { names: ['1_15', '1_19', '1_18', '2_6', '3_4', '4_1', '1_20', '2_7', '3_5', '4_2'], under: 'Extruder_Assembly' },
 };
@@ -62,11 +64,11 @@ const POINTS = {
   ],
   head: [
     { lit: null, pins: {} },
-    { lit: ['extruder'], pins: { 'e-motor': 'motorE', 'e-gear': 'extGear', 'e-arm': 'extArm' },
+    { lit: ['extruder'], flows: ['feed'], pins: { 'e-motor': 'motorE', 'e-gear': 'extGear', 'e-arm': 'extArm' },
       view: { focus: 'extruder', zoom: 0.3, az: -2.45, el: 0.5 } },
-    { lit: ['heatsink', 'heaterBlock', 'hotendFan'], hide: ['shroud'], pins: { 'h-sink': 'heatsink', 'h-block': 'block', 'h-fan': 'hotendFan' },
+    { lit: ['heatsink', 'heaterBlock', 'hotendFan'], hide: ['shroud'], flows: ['feed', 'melt'], pins: { 'h-sink': 'heatsink', 'h-block': 'block', 'h-fan': 'hotendFan' },
       view: { focus: 'heaterBlock', zoom: 0.24, az: 0.4, el: 0.16 } },
-    { lit: ['nozzle'], hide: ['shroud'], pins: { 'n-nozzle': 'nozzle' },
+    { lit: ['nozzle'], hide: ['shroud'], flows: ['melt'], pins: { 'n-nozzle': 'nozzle' },
       view: { focus: 'nozzle', zoom: 0.12, az: 0.35, el: 0.1 } },
   ],
 };
@@ -90,7 +92,11 @@ export class EnderDemo {
   static fullFrame = true;
 
   constructor(point = 'frame') {
+    this.point = point;
     this.phases = POINTS[point];
+    this.hideT = 0;        // 0 = carcasa en su sitio, 1 = fuera
+    this.hideTarget = 0;
+    this.flows = {};
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.5, 400);
     this.period = 1e9; // no hay bucle: todo depende de la fase y del giro
@@ -165,6 +171,8 @@ export class EnderDemo {
       }
       const missing = Object.keys(PARTS).filter((k) => !this.groups[k].length);
       if (missing.length) console.warn('[ender] piezas no encontradas:', missing.join(', '));
+      this.prepareRemovable();
+      if (this.point === 'head') this.buildFlows();
       this.ready = true;
       this.phase = -1;
     } catch (err) {
@@ -190,14 +198,13 @@ export class EnderDemo {
     const ph = this.phases[step] || this.phases[0];
     const lit = new Set();
     (ph.lit || []).forEach((k) => (this.groups[k] || []).forEach((m) => lit.add(m)));
-    const hidden = new Set();
-    (ph.hide || []).forEach((k) => (this.groups[k] || []).forEach((m) => hidden.add(m)));
+    this.hideTarget = (ph.hide || []).length ? 1 : 0;
+    for (const [name, f] of Object.entries(this.flows)) f.on = (ph.flows || []).includes(name);
     const any = lit.size > 0;
     const blue = new THREE.Color(ENDER_BLUE);
     const dim = new THREE.Color(DIM);
     for (const m of this.meshes) {
       const on = lit.has(m);
-      m.visible = !hidden.has(m);
       m.material.color.copy(!any ? m.userData.base : on ? blue : dim);
       m.material.emissive.set(on ? ENDER_BLUE : '#000000');
       m.material.emissiveIntensity = on ? 0.18 : 0;
@@ -254,9 +261,114 @@ export class EnderDemo {
         pins[id] = { x: gx - stage.x + 16, y: gy - stage.y };
       }
     }
+    if (this.ready) {
+      this.animateRemovable(dt);
+      this.animateFlows(dt, tl);
+    }
     return { pins, loading: !this.ready && !this.failed };
   }
 }
+
+// --- Carcasa que se quita: se desliza hacia arriba y afuera, y luego se oculta ---
+EnderDemo.prototype.prepareRemovable = function prepareRemovable() {
+  const names = new Set();
+  this.phases.forEach((ph) => (ph.hide || []).forEach((k) => names.add(k)));
+  this.removable = [];
+  const world = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3();
+  const delta = new THREE.Vector3(0, 1.6, 1.0); // hacia arriba y hacia el frente (unidades de escena)
+  for (const k of names) {
+    for (const m of this.groups[k] || []) {
+      m.getWorldPosition(world);
+      // El desplazamiento en el espacio del padre (que viene escalado y rotado).
+      a.copy(world); b.copy(world).add(delta);
+      m.parent.worldToLocal(a); m.parent.worldToLocal(b);
+      this.removable.push({ m, base: m.position.clone(), off: b.sub(a).clone() });
+    }
+  }
+};
+
+EnderDemo.prototype.animateRemovable = function animateRemovable(dt) {
+  this.hideT = damp(this.hideT, this.hideTarget, 0.16, dt);
+  const t = this.hideT;
+  const e = t * t * (3 - 2 * t);
+  for (const r of this.removable) {
+    r.m.position.copy(r.base).addScaledVector(r.off, e);
+    r.m.visible = t < 0.96;
+  }
+};
+
+// --- Filamento: entra al extrusor, viaja por el tubo y sale derretido ---
+const FEED_N = 70, MELT_N = 22;
+EnderDemo.prototype.buildFlows = function buildFlows() {
+  const A = this.anchors;
+  if (!A.extGear || !A.hotendInlet || !A.nozzle) return;
+  const G = A.extGear, O = A.extOutlet || A.extGear, H = A.hotendInlet;
+  const up = (v, y, z = 0) => v.clone().add(new THREE.Vector3(0, y, z));
+  const mid = O.clone().lerp(H, 0.5).add(new THREE.Vector3(0, 1.4, 0.4));
+  this.feedCurve = new THREE.CatmullRomCurve3([
+    up(G, 2.2, 0.2), up(G, 0.9, 0.05), G.clone(), O.clone(), up(O, 0.5), mid, up(H, 0.8), H.clone(),
+  ]);
+  const seg = new THREE.CylinderGeometry(0.045, 0.045, 0.11, 10);
+  const feed = new THREE.InstancedMesh(seg, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.4 }), FEED_N);
+  const paper = new THREE.Color(PALETTE.paper), mark = new THREE.Color(PALETTE.peach);
+  for (let i = 0; i < FEED_N; i++) feed.setColorAt(i, i % 5 === 0 ? mark : paper); // marcas: se ve que avanza
+  feed.frustumCulled = false;
+  feed.visible = false;
+  this.scene.add(feed);
+  this.flows.feed = { mesh: feed, on: false };
+
+  // Derretido: sale de la punta de la boquilla, caliente arriba y enfriándose abajo.
+  const nb = new THREE.Box3();
+  (this.groups.nozzle || []).forEach((m) => nb.expandByObject(m));
+  this.tip = new THREE.Vector3((nb.min.x + nb.max.x) / 2, nb.min.y, (nb.min.z + nb.max.z) / 2);
+  const drop = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 12, 8), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3, emissive: '#000000' }), MELT_N);
+  drop.frustumCulled = false;
+  drop.visible = false;
+  this.scene.add(drop);
+  this.flows.melt = { mesh: drop, on: false };
+  this.hot = new THREE.Color(PALETTE.accent);
+  this.cool = new THREE.Color(PALETTE.peach);
+  this.tmpM = new THREE.Matrix4(); this.tmpQ = new THREE.Quaternion(); this.tmpP = new THREE.Vector3();
+  this.tmpT = new THREE.Vector3(); this.tmpS = new THREE.Vector3(); this.yAxis = new THREE.Vector3(0, 1, 0);
+  this.tmpC = new THREE.Color();
+};
+
+EnderDemo.prototype.animateFlows = function animateFlows(dt, time) {
+  const feed = this.flows.feed, melt = this.flows.melt;
+  if (feed) {
+    feed.mesh.visible = feed.on;
+    if (feed.on) {
+      // Avanza despacio por el recorrido (como el filamento real).
+      for (let i = 0; i < FEED_N; i++) {
+        const u = ((i / FEED_N) + time * 0.035) % 1;
+        this.feedCurve.getPointAt(u, this.tmpP);
+        this.feedCurve.getTangentAt(u, this.tmpT);
+        this.tmpQ.setFromUnitVectors(this.yAxis, this.tmpT);
+        this.tmpM.compose(this.tmpP, this.tmpQ, this.tmpS.set(1, 1, 1));
+        feed.mesh.setMatrixAt(i, this.tmpM);
+      }
+      feed.mesh.instanceMatrix.needsUpdate = true;
+    }
+  }
+  if (melt) {
+    melt.mesh.visible = melt.on;
+    if (melt.on) {
+      // Hilo derretido: gotas que salen de la punta, se alargan y se enfrían al bajar.
+      const LEN = 1.5;
+      for (let i = 0; i < MELT_N; i++) {
+        const u = ((i / MELT_N) + time * 0.22) % 1;
+        this.tmpP.copy(this.tip).add(this.tmpT.set(Math.sin(u * 6 + i) * 0.01, -u * LEN - 0.02, 0));
+        this.tmpQ.identity();
+        const sx = 0.9 + u * 0.5;
+        this.tmpM.compose(this.tmpP, this.tmpQ, this.tmpS.set(sx, 1.4, sx));
+        melt.mesh.setMatrixAt(i, this.tmpM);
+        melt.mesh.setColorAt(i, this.tmpC.copy(this.hot).lerp(this.cool, Math.min(1, u * 1.6)));
+      }
+      melt.mesh.instanceMatrix.needsUpdate = true;
+      melt.mesh.instanceColor.needsUpdate = true;
+    }
+  }
+};
 
 function findNode(root, name) {
   let hit = null;
