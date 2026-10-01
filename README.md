@@ -35,6 +35,17 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - Código: `src/`. Después de editar, `npm install && npm run build` regenera
   `dist/deck.js` (esbuild, un solo script clásico: funciona desde `file://`).
 
+## Secciones, acentos y fases
+
+- `data-section` agrupa los puntos de una sección. Al cambiar de sección, el título
+  voxel vuelve al muro y el nuevo se arma desde él, como en la entrada inicial.
+- `data-title-accent="ENDER 3 PRO"`: esa línea del título recibe una sola onda
+  arcoíris desde su centro hacia afuera y queda en el color de la sección.
+- `data-steps="4"` + bloques `data-phase="1"` + botones `data-step-go="1"`: fases
+  dentro de un punto. Los botones y las flechas del teclado recorren las fases; la
+  diapositiva expone la fase en `data-step` (el esquema de respaldo la usa).
+- `data-orbit` en un escenario: se gira 360° arrastrando con el puntero.
+
 ## Componentes
 
 **Alerta «!» con ventana emergente.** Una casilla con un signo de exclamación que
@@ -77,6 +88,9 @@ de diapositiva. Para agregar una nueva:
 - `src/limits.js` — punto 05: límites (tiempo, capas visibles con lupa, un color sin
   AMS, material bajo calor). La lupa usa `prepass(renderer)`: la escena vista de
   cerca se dibuja a una textura que se muestra en el lente.
+- `src/ender.js` — sección 02: el modelo `src/assets/creality-ender-3-pro.glb`
+  (embebido en el bundle, así funciona desde `file://`), pintado como maqueta;
+  cada fase resalta un grupo de piezas (`PARTS`) y proyecta etiquetas (`data-pin`).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.

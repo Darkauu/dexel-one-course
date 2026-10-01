@@ -8,6 +8,7 @@ import { FdmDemo, ResinDemo } from './tech.js';
 import { PlaDemo, PetgDemo, TpuDemo } from './materials.js';
 import { PrototypeDemo, SparePartDemo, DecorDemo, DailyDemo } from './uses.js';
 import { TimeDemo, LayersDemo, ColorDemo, MaterialLimitDemo } from './limits.js';
+import { EnderDemo } from './ender.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -27,6 +28,7 @@ const SCENES = {
   layers: LayersDemo,
   color: ColorDemo,
   heat: MaterialLimitDemo,
+  ender: EnderDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión
@@ -164,7 +166,9 @@ export class GLLayer {
       if (!Scene) continue;
       if (!this.scenes.has(name)) this.scenes.set(name, new Scene());
       const demo = this.scenes.get(name);
-      out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer);
+      // Escenas que se giran con el puntero: reciben el arrastre acumulado del fotograma.
+      if (demo.drag && zones.drag && zones.drag.name === name) demo.drag(zones.drag.dx, zones.drag.dy);
+      out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer, zones.step);
       // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
       if (demo.prepass) demo.prepass(this.renderer);
       this.pass(demo.scene, demo.camera, rect);

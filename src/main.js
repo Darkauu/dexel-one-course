@@ -26,6 +26,14 @@ function render() {
     el.setAttribute('aria-hidden', current ? 'false' : 'true');
     if (!current) return;
     el.querySelectorAll('[data-build]').forEach((b) => { b.hidden = parseInt(b.dataset.build, 10) > state.step; });
+    // Fases: cada bloque declara en qué pasos se ve; los botones marcan el activo.
+    el.dataset.step = String(state.step);
+    el.querySelectorAll('[data-phase]').forEach((b) => { b.hidden = !b.dataset.phase.split(' ').includes(String(state.step)); });
+    el.querySelectorAll('[data-step-go]').forEach((b) => {
+      const on = b.dataset.stepGo === String(state.step);
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
     const counter = el.querySelector('[data-counter]');
     if (counter) counter.textContent = `${pad(state.slide + 1)} / ${pad(slides.length)}`;
   });
@@ -81,6 +89,10 @@ function onInput(e) {
       return;
     }
     case 'pointermove':
+      if (orbit && e.pointerId === orbit.id) {
+        orbit.dx += e.clientX - orbit.x; orbit.dy += e.clientY - orbit.y;
+        orbit.x = e.clientX; orbit.y = e.clientY;
+      }
       pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
       pointer.tx = (e.clientX / window.innerWidth) * 2 - 1;
       pointer.ty = (e.clientY / window.innerHeight) * 2 - 1;
@@ -90,10 +102,24 @@ function onInput(e) {
     case 'blur':
       pointer.active = false; pointer.tx = 0; pointer.ty = 0;
       return;
-    case 'pointerdown':
+    case 'pointerdown': {
+      // Arrastrar sobre un escenario giratorio lo rota (y no cuenta como deslizar).
+      const stage = !popupOpen() && e.target.closest?.('[data-orbit]');
+      if (stage) {
+        orbit = { name: stage.dataset['3d'], id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0 };
+        stage.classList.add('is-grabbing');
+        return;
+      }
       if (e.pointerType !== 'mouse' && !popupOpen()) swipe = { x: e.clientX, y: e.clientY };
       return;
+    }
+    case 'pointercancel':
     case 'pointerup': {
+      if (orbit && e.pointerId === orbit.id) {
+        document.querySelectorAll('.is-grabbing').forEach((g) => g.classList.remove('is-grabbing'));
+        pending = orbit; orbit = null; // el último tramo se entrega en el próximo fotograma
+        return;
+      }
       if (swipe && e.pointerType !== 'mouse') {
         const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
         if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) (dx < 0 ? next : prev)();
@@ -115,6 +141,8 @@ function onInput(e) {
         if (e.target === dlg || e.target.closest('[data-popup-close]')) dlg.close();
         return;
       }
+      const phase = e.target.closest('[data-step-go]');
+      if (phase) { go(state.slide, parseInt(phase.dataset.stepGo, 10)); return; }
       const b = e.target.closest('[data-nav]');
       if (b) (b.dataset.nav === 'next' ? next : prev)();
       return;
@@ -124,8 +152,10 @@ function onInput(e) {
   }
 }
 let swipe = null;
+let orbit = null;    // arrastre en curso sobre un escenario giratorio
+let pending = null;  // arrastre que terminó y aún no se entregó
 const popupOpen = () => !!document.querySelector('dialog.popup[open]');
-['keydown', 'pointermove', 'pointerdown', 'pointerup', 'click', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
+['keydown', 'pointermove', 'pointerdown', 'pointerup', 'pointercancel', 'click', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
 document.documentElement.addEventListener('pointerleave', onInput);
 
 // ---------------------------------------------------------------- reloj único
@@ -197,13 +227,19 @@ function tick(now) {
   // Sincronía por fotograma con chequeo de identidad (no en el evento).
   const slide = slides[state.slide];
   const titleZone = slide.querySelector('[data-3d="title"]');
-  const zones = { sinceEnter: clock.time - state.enteredAt, stages: [] };
+  const zones = { sinceEnter: clock.time - state.enteredAt, stages: [], step: state.step };
+  // Arrastre del fotograma (en curso o recién terminado) para el escenario giratorio.
+  const d = orbit || pending;
+  if (d) { zones.drag = { name: d.name, dx: d.dx, dy: d.dy }; d.dx = 0; d.dy = 0; pending = null; }
   if (titleZone) {
     const r = rectOf(titleZone);
     const eyebrow = titleZone.querySelector('.eyebrow');
     const inset = eyebrow ? eyebrow.offsetHeight + 6 : 0;
     zones.title = { x: r.x, y: r.y + inset, w: r.w, h: r.h - inset };
-    gl.title.setLines(titleLinesFor(slide, zones.title), clock.time);
+    gl.title.setLines(titleLinesFor(slide, zones.title), clock.time, {
+      section: slide.dataset.section || null,
+      accent: slide.dataset.titleAccent || null,
+    });
   }
   const stageEls = [...slide.querySelectorAll('[data-3d]:not([data-3d="title"])')];
   for (const el of stageEls) zones.stages.push({ name: el.dataset['3d'], rect: rectOf(el) });
@@ -220,6 +256,15 @@ function tick(now) {
     const name = el.dataset['3d'];
     const o = out[name];
     if (!o) continue;
+    el.classList.toggle('is-loading', !!o.loading);
+    // Etiquetas múltiples (data-pin) proyectadas sobre piezas del modelo.
+    if (o.pins) {
+      el.querySelectorAll('[data-pin]').forEach((pin) => {
+        const at = o.pins[pin.dataset.pin];
+        pin.classList.toggle('is-on', !!at);
+        if (at) pin.style.transform = `translate(${at.x.toFixed(1)}px, ${(at.y - pin.offsetHeight / 2).toFixed(1)}px)`;
+      });
+    }
     const live = slide.querySelector(`[data-live="${name}"]`);
     if (live) setText(live, o.live);
     const tag = el.querySelector(`[data-tag="${name}"]`);
