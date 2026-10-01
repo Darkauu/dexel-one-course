@@ -47,7 +47,8 @@ const PARTS = {
   block: { name: '1_10', under: 'Extruder_Assembly' },
   nozzle: { name: '1_11', under: 'Extruder_Assembly' },
   hotendInlet: { name: '1_16', under: 'Extruder_Assembly' },   // racor de entrada del hotend
-  extOutlet: { name: '1_26', under: 'Extruder_&_X_Axis_Assembly' }, // salida del extrusor
+  extIdler: { name: '1_31', under: 'Extruder_&_X_Axis_Assembly' },   // rodamiento del brazo
+  extCoupler: { name: '1_27', under: 'Extruder_&_X_Axis_Assembly' }, // racor del tubo bowden
   // Carcasa y ventilador frontal: se quitan para ver el interior del hotend.
   shroud: { names: ['1_15', '1_19', '1_18', '2_6', '3_4', '4_1', '1_20', '2_7', '3_5', '4_2'], under: 'Extruder_Assembly' },
 };
@@ -298,17 +299,35 @@ EnderDemo.prototype.animateRemovable = function animateRemovable(dt) {
 };
 
 // --- Filamento: entra al extrusor, viaja por el tubo y sale derretido ---
-const FEED_N = 70, MELT_N = 22;
+// El engranaje y el rodamiento giran sobre ejes verticales, uno al lado del otro:
+// el filamento pasa horizontal entre ambos (entra por el lado del brazo, a la
+// izquierda), sale por el racor y el tubo bowden lo lleva en arco hasta entrar
+// desde arriba al hotend.
+const FEED_N = 90, MELT_N = 48, MELT_LEN = 1.4;
 EnderDemo.prototype.buildFlows = function buildFlows() {
   const A = this.anchors;
   if (!A.extGear || !A.hotendInlet || !A.nozzle) return;
-  const G = A.extGear, O = A.extOutlet || A.extGear, H = A.hotendInlet;
-  const up = (v, y, z = 0) => v.clone().add(new THREE.Vector3(0, y, z));
-  const mid = O.clone().lerp(H, 0.5).add(new THREE.Vector3(0, 1.4, 0.4));
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const G = A.extGear, H = A.hotendInlet;
+  const I = A.extIdler || G;
+  const C = A.extCoupler || G.clone().add(V(0.5, 0, 0));
+  // Línea de agarre: entre los dientes del engranaje y el rodamiento.
+  const y = G.y, z = (G.z + I.z) / 2;
+  const top = (this.groups.hotendInlet || []).reduce((b, m) => b.expandByObject(m), new THREE.Box3()).max.y;
   this.feedCurve = new THREE.CatmullRomCurve3([
-    up(G, 2.2, 0.2), up(G, 0.9, 0.05), G.clone(), O.clone(), up(O, 0.5), mid, up(H, 0.8), H.clone(),
-  ]);
-  const seg = new THREE.CylinderGeometry(0.045, 0.045, 0.11, 10);
+    V(G.x - 0.8, y + 1.5, z - 0.45),    // baja del carrete (arriba del marco),
+    V(G.x - 0.72, y + 0.5, z - 0.24),    // por detrás del tornillo del eje Z
+    V(G.x - 0.52, y + 0.05, z),
+    V(G.x - 0.38, y, z),                 // entrada por el brazo
+    V(G.x, y, z),                        // entre engranaje y rodamiento
+    V(C.x, y, z),                        // racor de salida
+    V(C.x + 0.45, y + 0.05, z + 0.08),   // tubo bowden
+    V((C.x + H.x) / 2 + 0.2, y + 0.45, (z + H.z) / 2),
+    V(H.x, top + 0.55, H.z),
+    V(H.x, top + 0.15, H.z),
+    V(H.x, H.y, H.z),                    // entra al hotend desde arriba
+  ], false, 'centripetal');
+  const seg = new THREE.CylinderGeometry(0.03, 0.03, 0.1, 10);
   const feed = new THREE.InstancedMesh(seg, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.4 }), FEED_N);
   const paper = new THREE.Color(PALETTE.paper), mark = new THREE.Color(PALETTE.peach);
   for (let i = 0; i < FEED_N; i++) feed.setColorAt(i, i % 5 === 0 ? mark : paper); // marcas: se ve que avanza
@@ -317,15 +336,18 @@ EnderDemo.prototype.buildFlows = function buildFlows() {
   this.scene.add(feed);
   this.flows.feed = { mesh: feed, on: false };
 
-  // Derretido: sale de la punta de la boquilla, caliente arriba y enfriándose abajo.
+  // Derretido: un hilo fino continuo (boquilla de 0,4 mm) que sale de la punta,
+  // caliente arriba y enfriándose abajo.
   const nb = new THREE.Box3();
   (this.groups.nozzle || []).forEach((m) => nb.expandByObject(m));
   this.tip = new THREE.Vector3((nb.min.x + nb.max.x) / 2, nb.min.y, (nb.min.z + nb.max.z) / 2);
-  const drop = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 12, 8), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3, emissive: '#000000' }), MELT_N);
-  drop.frustumCulled = false;
-  drop.visible = false;
-  this.scene.add(drop);
-  this.flows.melt = { mesh: drop, on: false };
+  const strand = new THREE.CylinderGeometry(0.011, 0.011, (MELT_LEN / MELT_N) * 1.08, 8);
+  strand.translate(0, -(MELT_LEN / MELT_N) * 0.5, 0); // cuelga desde su extremo superior
+  const melt = new THREE.InstancedMesh(strand, new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.3 }), MELT_N);
+  melt.frustumCulled = false;
+  melt.visible = false;
+  this.scene.add(melt);
+  this.flows.melt = { mesh: melt, on: false };
   this.hot = new THREE.Color(PALETTE.accent);
   this.cool = new THREE.Color(PALETTE.peach);
   this.tmpM = new THREE.Matrix4(); this.tmpQ = new THREE.Quaternion(); this.tmpP = new THREE.Vector3();
@@ -340,7 +362,7 @@ EnderDemo.prototype.animateFlows = function animateFlows(dt, time) {
     if (feed.on) {
       // Avanza despacio por el recorrido (como el filamento real).
       for (let i = 0; i < FEED_N; i++) {
-        const u = ((i / FEED_N) + time * 0.035) % 1;
+        const u = ((i / FEED_N) + time * 0.03) % 1;
         this.feedCurve.getPointAt(u, this.tmpP);
         this.feedCurve.getTangentAt(u, this.tmpT);
         this.tmpQ.setFromUnitVectors(this.yAxis, this.tmpT);
@@ -353,16 +375,17 @@ EnderDemo.prototype.animateFlows = function animateFlows(dt, time) {
   if (melt) {
     melt.mesh.visible = melt.on;
     if (melt.on) {
-      // Hilo derretido: gotas que salen de la punta, se alargan y se enfrían al bajar.
-      const LEN = 1.5;
+      // Hilo continuo: tramos fijos uno bajo otro; lo que baja es el color (caliente
+      // en la punta, frío abajo) con un pulso que delata el avance, y un leve vaivén.
+      const step = MELT_LEN / MELT_N;
       for (let i = 0; i < MELT_N; i++) {
-        const u = ((i / MELT_N) + time * 0.22) % 1;
-        this.tmpP.copy(this.tip).add(this.tmpT.set(Math.sin(u * 6 + i) * 0.01, -u * LEN - 0.02, 0));
-        this.tmpQ.identity();
-        const sx = 0.9 + u * 0.5;
-        this.tmpM.compose(this.tmpP, this.tmpQ, this.tmpS.set(sx, 1.4, sx));
+        const u = i / MELT_N;
+        const sway = Math.sin(time * 1.3 - u * 4) * 0.035 * u * u;
+        this.tmpP.copy(this.tip).add(this.tmpT.set(sway, -i * step - 0.01, 0));
+        this.tmpM.compose(this.tmpP, this.tmpQ.identity(), this.tmpS.set(1, 1, 1));
         melt.mesh.setMatrixAt(i, this.tmpM);
-        melt.mesh.setColorAt(i, this.tmpC.copy(this.hot).lerp(this.cool, Math.min(1, u * 1.6)));
+        const pulse = 0.12 * Math.max(0, Math.sin((u - time * 0.5) * Math.PI * 8));
+        melt.mesh.setColorAt(i, this.tmpC.copy(this.hot).lerp(this.cool, Math.min(1, u * 1.5 + pulse)));
       }
       melt.mesh.instanceMatrix.needsUpdate = true;
       melt.mesh.instanceColor.needsUpdate = true;
