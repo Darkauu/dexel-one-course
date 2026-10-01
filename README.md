@@ -44,7 +44,8 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - `data-steps="4"` + bloques `data-phase="1"` + botones `data-step-go="1"`: fases
   dentro de un punto. Los botones y las flechas del teclado recorren las fases; la
   diapositiva expone la fase en `data-step` (el esquema de respaldo la usa).
-- `data-orbit` en un escenario: se gira 360° arrastrando con el puntero.
+- `data-orbit` en un escenario: se gira 360° arrastrando y se acerca con la rueda o
+  pellizcando con dos dedos (la escena implementa `drag` y `zoomBy`).
 
 ## Componentes
 

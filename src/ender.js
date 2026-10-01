@@ -54,7 +54,7 @@ export class EnderDemo {
     this.period = 1e9; // no hay bucle: todo depende de la fase y del giro
     addLights(this.scene, { shadow: true, shadowSize: 9 });
 
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.2, 0.5, 72), new THREE.MeshStandardMaterial({ color: PALETTE.peachShade, roughness: 0.85 }));
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.2, 0.5, 72), new THREE.MeshStandardMaterial({ color: PALETTE.peachShade, roughness: 0.85 }));
     disc.position.y = -0.26;
     disc.receiveShadow = true;
     this.scene.add(disc);
@@ -70,7 +70,10 @@ export class EnderDemo {
 
     // Giro: azimut libre (360°), elevación acotada; amortiguado.
     this.orbit = { az: 0.6, el: 0.32, taz: 0.6, tel: 0.32 };
-    this.focus = new THREE.Vector3(0, 5.5, 0);
+    // Foco bajo el centro del modelo: con la cámara elevada, el modelo queda más arriba
+    // en el encuadre y la base no se corta.
+    this.focus = new THREE.Vector3(0, 5.2, 0);
+    this.zoom = { k: 1, tk: 1 };
     this.proj = new THREE.Vector3();
     this.tmp = new THREE.Vector3();
 
@@ -136,6 +139,11 @@ export class EnderDemo {
     this.orbit.tel = Math.max(-0.15, Math.min(1.25, this.orbit.tel + dy * 0.006));
   }
 
+  // Zoom: factor multiplicativo (<1 acerca). Acotado para no atravesar el modelo.
+  zoomBy(f) {
+    this.zoom.tk = Math.max(0.5, Math.min(1.6, this.zoom.tk * f));
+  }
+
   applyPhase(step) {
     if (step === this.phase || !this.ready) return;
     this.phase = step;
@@ -159,7 +167,8 @@ export class EnderDemo {
     o.el = damp(o.el, o.tel, 0.18, dt);
     const cam = this.camera;
     cam.aspect = view.w / view.h;
-    const d = fitDistance(cam, 6.9, cam.aspect);
+    this.zoom.k = damp(this.zoom.k, this.zoom.tk, 0.15, dt);
+    const d = fitDistance(cam, 7.7, cam.aspect) * this.zoom.k;
     cam.position.set(
       this.focus.x + d * Math.cos(o.el) * Math.sin(o.az),
       this.focus.y + d * Math.sin(o.el),
@@ -176,7 +185,10 @@ export class EnderDemo {
         if (!a) continue;
         this.proj.copy(a).project(cam);
         if (this.proj.z > 1) continue;
-        pins[id] = { x: (this.proj.x * 0.5 + 0.5) * view.w + 16, y: (-this.proj.y * 0.5 + 0.5) * view.h };
+        const x = (this.proj.x * 0.5 + 0.5) * view.w, y = (-this.proj.y * 0.5 + 0.5) * view.h;
+        // Con zoom, una pieza puede quedar fuera del cuadro: su etiqueta no se sale del escenario.
+        if (x < 0 || y < 12 || x > view.w - 40 || y > view.h - 12) continue;
+        pins[id] = { x: x + 16, y };
       }
     }
     return { pins, loading: !this.ready && !this.failed };
