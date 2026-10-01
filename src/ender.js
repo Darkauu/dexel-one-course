@@ -37,21 +37,60 @@ const PARTS = {
   motorE: { names: ['1_23', '1_24'], under: 'Extruder_&_X_Axis_Assembly' },
   motorY: { name: '1_86', under: 'Base' },
   motorZ: { name: 'Z_Axis_Motor' },
+  // Cabezal (punto 02). Extrusor Bowden sobre el carro izquierdo; hotend en el carro X.
+  extruder: { names: ['1_23', '1_24', '1_25', '1_26', '1_27', '1_28', '1_29', '1_30', '1_31', '1_32', '1_33', '2_8', '5_1', '6_1', '7_1', '8_2'], under: 'Extruder_&_X_Axis_Assembly' },
+  extGear: { name: '1_28', under: 'Extruder_&_X_Axis_Assembly' },
+  extArm: { name: '1_29', under: 'Extruder_&_X_Axis_Assembly' },
+  heatsink: { names: ['1_7', '1_8', '2_2', '1_16'], under: 'Extruder_Assembly' },
+  hotendFan: { name: '1_17', under: 'Extruder_Assembly' },
+  heaterBlock: { names: ['1_10', '1_9', '1_12', '2_3', '1_13', '2_4', '1_14'], under: 'Extruder_Assembly' },
+  block: { name: '1_10', under: 'Extruder_Assembly' },
+  nozzle: { name: '1_11', under: 'Extruder_Assembly' },
+  // Carcasa y ventilador frontal: se quitan para ver el interior del hotend.
+  shroud: { names: ['1_15', '1_19', '1_18', '2_6', '3_4', '4_1', '1_20', '2_7', '3_5', '4_2'], under: 'Extruder_Assembly' },
 };
 
-// Fases: qué se resalta y qué etiquetas aparecen (clave → ancla en el modelo).
-const PHASES = [
-  { lit: null, pins: {} },
-  { lit: ['frameTop', 'frameBase'], pins: { 'frame-top': 'frameTop', 'frame-base': 'frameBase' } },
-  { lit: ['xRail', 'xCarriageR', 'yRail', 'bed', 'zScrew', 'zCoupler'], pins: { x: 'xRail', y: 'yRail', z: 'zScrew' } },
-  { lit: ['motorX', 'motorY', 'motorZ', 'motorE'], pins: { 'm-x': 'motorX', 'm-y': 'motorY', 'm-z': 'motorZ', 'm-e': 'motorE' } },
-];
+// Puntos de la sección: cada fase dice qué se resalta, qué etiquetas aparecen
+// (id → pieza), qué se oculta y, si hace falta, hacia dónde va la cámara
+// (pieza a enfocar, zoom y ángulo). Sin `view`, vuelve a la vista general.
+const POINTS = {
+  frame: [
+    { lit: null, pins: {} },
+    { lit: ['frameTop', 'frameBase'], pins: { 'frame-top': 'frameTop', 'frame-base': 'frameBase' } },
+    { lit: ['xRail', 'xCarriageR', 'yRail', 'bed', 'zScrew', 'zCoupler'], pins: { x: 'xRail', y: 'yRail', z: 'zScrew' } },
+    { lit: ['motorX', 'motorY', 'motorZ', 'motorE'], pins: { 'm-x': 'motorX', 'm-y': 'motorY', 'm-z': 'motorZ', 'm-e': 'motorE' } },
+  ],
+  head: [
+    { lit: null, pins: {} },
+    { lit: ['extruder'], pins: { 'e-motor': 'motorE', 'e-gear': 'extGear', 'e-arm': 'extArm' },
+      view: { focus: 'extruder', zoom: 0.3, az: -2.45, el: 0.5 } },
+    { lit: ['heatsink', 'heaterBlock', 'hotendFan'], hide: ['shroud'], pins: { 'h-sink': 'heatsink', 'h-block': 'block', 'h-fan': 'hotendFan' },
+      view: { focus: 'heaterBlock', zoom: 0.24, az: 0.4, el: 0.16 } },
+    { lit: ['nozzle'], hide: ['shroud'], pins: { 'n-nozzle': 'nozzle' },
+      view: { focus: 'nozzle', zoom: 0.12, az: 0.35, el: 0.1 } },
+  ],
+};
+const HOME = { zoom: 1, az: 0.6, el: 0.32 };
+
+// El modelo se decodifica una sola vez; cada punto usa una copia (geometría compartida).
+let modelPromise = null;
+function loadModel() {
+  modelPromise ??= (async () => {
+    await MeshoptDecoder.ready;
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    const bytes = glbBytes;
+    return loader.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
+  })();
+  return modelPromise;
+}
 
 export class EnderDemo {
   // Se dibuja en toda la ventana (detrás del título): el zoom nunca lo recorta.
   static fullFrame = true;
 
-  constructor() {
+  constructor(point = 'frame') {
+    this.phases = POINTS[point];
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.5, 400);
     this.period = 1e9; // no hay bucle: todo depende de la fase y del giro
@@ -75,7 +114,9 @@ export class EnderDemo {
     this.orbit = { az: 0.6, el: 0.32, taz: 0.6, tel: 0.32 };
     // Foco bajo el centro del modelo: con la cámara elevada, el modelo queda más arriba
     // en el encuadre y la base no se corta.
-    this.focus = new THREE.Vector3(0, 6.0, 0);
+    this.home = new THREE.Vector3(0, 6.0, 0);
+    this.focus = this.home.clone();
+    this.focusTarget = this.home.clone();
     this.zoom = { k: 1, tk: 1 };
     this.proj = new THREE.Vector3();
     this.tmp = new THREE.Vector3();
@@ -85,12 +126,8 @@ export class EnderDemo {
 
   async load() {
     try {
-      await MeshoptDecoder.ready;
-      const loader = new GLTFLoader();
-      loader.setMeshoptDecoder(MeshoptDecoder);
-      const bytes = glbBytes;
-      const gltf = await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
-      const model = gltf.scene;
+      const gltf = await loadModel();
+      const model = gltf.scene.clone(true);
 
       // Centrado y escalado: base en y=0, centro en el origen.
       model.scale.setScalar(SCALE);
@@ -144,23 +181,34 @@ export class EnderDemo {
 
   // Zoom: factor multiplicativo (<1 acerca). Acotado para no atravesar el modelo.
   zoomBy(f) {
-    this.zoom.tk = Math.max(0.5, Math.min(1.6, this.zoom.tk * f));
+    this.zoom.tk = Math.max(0.3, Math.min(1.6, this.zoom.tk * f));
   }
 
   applyPhase(step) {
     if (step === this.phase || !this.ready) return;
     this.phase = step;
+    const ph = this.phases[step] || this.phases[0];
     const lit = new Set();
-    (PHASES[step]?.lit || []).forEach((k) => (this.groups[k] || []).forEach((m) => lit.add(m)));
+    (ph.lit || []).forEach((k) => (this.groups[k] || []).forEach((m) => lit.add(m)));
+    const hidden = new Set();
+    (ph.hide || []).forEach((k) => (this.groups[k] || []).forEach((m) => hidden.add(m)));
     const any = lit.size > 0;
     const blue = new THREE.Color(ENDER_BLUE);
     const dim = new THREE.Color(DIM);
     for (const m of this.meshes) {
       const on = lit.has(m);
+      m.visible = !hidden.has(m);
       m.material.color.copy(!any ? m.userData.base : on ? blue : dim);
       m.material.emissive.set(on ? ENDER_BLUE : '#000000');
       m.material.emissiveIntensity = on ? 0.18 : 0;
     }
+    // Cámara: acercamiento medio hacia la zona de la fase (o de vuelta a la general).
+    const v = ph.view;
+    const anchor = v && this.anchors[v.focus];
+    this.focusTarget.copy(anchor || this.home);
+    this.zoom.tk = v ? v.zoom : HOME.zoom;
+    this.orbit.taz = v ? v.az : HOME.az;
+    this.orbit.tel = v ? v.el : HOME.el;
   }
 
   // view: zona del encuadre base (px CSS). full: lo que realmente se dibuja (la
@@ -168,6 +216,10 @@ export class EnderDemo {
   frame(dt, tl, view, pointer, step = 0, full = view, stage = view) {
     this.applyPhase(step);
     const o = this.orbit;
+    // El foco viaja con un paso lento: se ve el recorrido hacia la pieza.
+    this.focus.x = damp(this.focus.x, this.focusTarget.x, 0.35, dt);
+    this.focus.y = damp(this.focus.y, this.focusTarget.y, 0.35, dt);
+    this.focus.z = damp(this.focus.z, this.focusTarget.z, 0.35, dt);
     o.az = damp(o.az, o.taz, 0.18, dt);
     o.el = damp(o.el, o.tel, 0.18, dt);
     const cam = this.camera;
@@ -184,11 +236,14 @@ export class EnderDemo {
     // así el modelo queda donde está la zona y lo que sobresale sigue visible.
     cam.setViewOffset(view.w, view.h, full.x - view.x, full.y - view.y, full.w, full.h);
     cam.updateProjectionMatrix();
+    // La matriz de la cámara se actualiza ya (no al renderizar): las etiquetas se
+    // proyectan con la cámara de ESTE fotograma y no quedan atrasadas mientras viaja.
+    cam.updateMatrixWorld();
 
     // Etiquetas de la fase: proyectadas sobre su pieza; ocultas si quedan detrás.
     const pins = {};
     if (this.ready) {
-      for (const [id, key] of Object.entries(PHASES[step]?.pins || {})) {
+      for (const [id, key] of Object.entries(this.phases[step]?.pins || {})) {
         const a = this.anchors[key];
         if (!a) continue;
         this.proj.copy(a).project(cam);
@@ -207,4 +262,9 @@ function findNode(root, name) {
   let hit = null;
   root.traverse((o) => { if (!hit && o.name === name) hit = o; });
   return hit;
+}
+
+// Punto 02: extrusor, hotend y boquilla (misma escena, otras fases).
+export class EnderHeadDemo extends EnderDemo {
+  constructor() { super('head'); }
 }

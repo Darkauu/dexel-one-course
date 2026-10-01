@@ -103,6 +103,7 @@ export class Stage {
     );
     cam.lookAt(this.focus);
     cam.updateProjectionMatrix();
+    cam.updateMatrixWorld(); // las etiquetas se proyectan con la cámara de este fotograma
   }
 
   // Proyecta un punto del mundo a px CSS relativos al viewport.

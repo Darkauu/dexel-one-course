@@ -8,7 +8,7 @@ import { FdmDemo, ResinDemo } from './tech.js';
 import { PlaDemo, PetgDemo, TpuDemo } from './materials.js';
 import { PrototypeDemo, SparePartDemo, DecorDemo, DailyDemo } from './uses.js';
 import { TimeDemo, LayersDemo, ColorDemo, MaterialLimitDemo } from './limits.js';
-import { EnderDemo } from './ender.js';
+import { EnderDemo, EnderHeadDemo } from './ender.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -29,6 +29,7 @@ const SCENES = {
   color: ColorDemo,
   heat: MaterialLimitDemo,
   ender: EnderDemo,
+  'ender-head': EnderHeadDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión

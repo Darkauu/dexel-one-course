@@ -37,7 +37,8 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 
 ## Secciones, acentos y fases
 
-- `data-section` agrupa los puntos de una sección. Al cambiar de sección, el título
+- `data-section` agrupa los puntos de una sección; el contador de arriba a la
+  derecha numera dentro de la sección («01 / 02»). Al cambiar de sección, el título
   voxel vuelve al muro y el nuevo se arma desde él, como en la entrada inicial.
 - `data-title-accent="ENDER 3 PRO"`: esa línea del título recibe una sola onda
   arcoíris desde su centro hacia afuera y queda en el color de la sección.
@@ -95,8 +96,10 @@ mueve el reloj único del deck mientras su ventana está abierta.
   AMS, material bajo calor). La lupa usa `prepass(renderer)`: la escena vista de
   cerca se dibuja a una textura que se muestra en el lente.
 - `src/ender.js` — sección 02: el modelo `src/assets/creality-ender-3-pro.glb`
-  (embebido en el bundle, así funciona desde `file://`), pintado como maqueta;
-  cada fase resalta un grupo de piezas (`PARTS`) y proyecta etiquetas (`data-pin`).
+  (embebido en el bundle, así funciona desde `file://`; se decodifica una vez y cada
+  punto usa una copia), pintado como maqueta. `POINTS` define las fases de cada punto:
+  qué piezas resalta (`PARTS`), qué etiquetas muestra (`data-pin`), qué oculta (p. ej.
+  la carcasa del hotend) y hacia dónde se acerca la cámara (`view`).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
