@@ -285,8 +285,14 @@ html.has-3d .voxel-title .accent { color: transparent; }
 .specs-list dt { margin-bottom: 0.15em; }
 .specs-list dd { margin: 0; font-weight: 800; font-size: clamp(16px, min(1.45vw, 2.6vh), 30px); }
 .side .hint { color: var(--peach-shade); margin-top: 0.4em; }
+.specs-head { display: flex; align-items: center; justify-content: space-between; color: var(--paper); }
+/* Ilustración de pasos: la aguja avanza a saltos (200 por vuelta, aquí 40 marcas) y la polea la sigue. */
+.step-needle, .step-pulley { transform-box: view-box; animation: step-turn 8s steps(40, end) infinite; }
+.step-needle { transform-origin: 120px 125px; }
+.step-pulley { transform-origin: 394px 125px; }
+@keyframes step-turn { to { transform: rotate(360deg); } }
 
-.stage--model { cursor: grab; touch-action: none; }
+.stage--model { cursor: grab; touch-action: none; overscroll-behavior: contain; }
 .stage--model.is-grabbing { cursor: grabbing; }
 .stage--model .loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.3s; }
 html.has-3d .stage--model.is-loading .loading { opacity: 1; }
@@ -457,7 +463,7 @@ html:not(.is-ready) .deck { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .subtitle { transform: none; }
-  .alert-btn, .popup[open], .ams-flow, .ams-out, .ams-slot { animation: none; }
+  .alert-btn, .popup[open], .ams-flow, .ams-out, .ams-slot, .step-needle, .step-pulley { animation: none; }
   .ams-slot--0 { opacity: 1; }
   .boot, .tag, .controls { transition: none; }
 }

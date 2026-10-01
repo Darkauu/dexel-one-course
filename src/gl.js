@@ -168,6 +168,7 @@ export class GLLayer {
       const demo = this.scenes.get(name);
       // Escenas que se giran con el puntero: reciben el arrastre acumulado del fotograma.
       if (demo.drag && zones.drag && zones.drag.name === name) demo.drag(zones.drag.dx, zones.drag.dy);
+      if (demo.zoomBy && zones.zoom && zones.zoom.name === name) demo.zoomBy(zones.zoom.f);
       out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer, zones.step);
       // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
       if (demo.prepass) demo.prepass(this.renderer);

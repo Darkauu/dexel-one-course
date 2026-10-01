@@ -88,7 +88,26 @@ function onInput(e) {
       lastMove = -10; // el teclado esconde los controles
       return;
     }
+    case 'wheel': {
+      // Rueda sobre un escenario giratorio: zoom (y no desplaza la página).
+      const stage = !popupOpen() && e.target.closest?.('[data-orbit]');
+      if (!stage) return;
+      e.preventDefault();
+      zoom = { name: stage.dataset['3d'], f: (zoom?.f || 1) * Math.exp(e.deltaY * 0.0015) };
+      return;
+    }
     case 'pointermove':
+      if (touches.has(e.pointerId)) {
+        touches.set(e.pointerId, { x: e.clientX, y: e.clientY, name: touches.get(e.pointerId).name });
+        if (touches.size === 2) {
+          // Pellizco: la razón entre distancias es el factor de zoom.
+          const [a, b] = [...touches.values()];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (pinch) zoom = { name: a.name, f: (zoom?.f || 1) * (pinch / Math.max(1, dist)) };
+          pinch = dist;
+          return;
+        }
+      }
       if (orbit && e.pointerId === orbit.id) {
         orbit.dx += e.clientX - orbit.x; orbit.dy += e.clientY - orbit.y;
         orbit.x = e.clientX; orbit.y = e.clientY;
@@ -106,6 +125,10 @@ function onInput(e) {
       // Arrastrar sobre un escenario giratorio lo rota (y no cuenta como deslizar).
       const stage = !popupOpen() && e.target.closest?.('[data-orbit]');
       if (stage) {
+        if (e.pointerType === 'touch') {
+          touches.set(e.pointerId, { x: e.clientX, y: e.clientY, name: stage.dataset['3d'] });
+          if (touches.size === 2) { orbit = null; pinch = 0; stage.classList.remove('is-grabbing'); return; }
+        }
         orbit = { name: stage.dataset['3d'], id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0 };
         stage.classList.add('is-grabbing');
         return;
@@ -115,6 +138,7 @@ function onInput(e) {
     }
     case 'pointercancel':
     case 'pointerup': {
+      if (touches.delete(e.pointerId) && touches.size < 2) pinch = 0;
       if (orbit && e.pointerId === orbit.id) {
         document.querySelectorAll('.is-grabbing').forEach((g) => g.classList.remove('is-grabbing'));
         pending = orbit; orbit = null; // el último tramo se entrega en el próximo fotograma
@@ -154,8 +178,12 @@ function onInput(e) {
 let swipe = null;
 let orbit = null;    // arrastre en curso sobre un escenario giratorio
 let pending = null;  // arrastre que terminó y aún no se entregó
+let zoom = null;     // zoom acumulado del fotograma (rueda o pellizco)
+let pinch = 0;       // distancia previa entre los dos dedos
+const touches = new Map(); // dedos apoyados sobre un escenario giratorio
 const popupOpen = () => !!document.querySelector('dialog.popup[open]');
 ['keydown', 'pointermove', 'pointerdown', 'pointerup', 'pointercancel', 'click', 'blur', 'hashchange'].forEach((t) => window.addEventListener(t, onInput));
+window.addEventListener('wheel', onInput, { passive: false });
 document.documentElement.addEventListener('pointerleave', onInput);
 
 // ---------------------------------------------------------------- reloj único
@@ -231,6 +259,7 @@ function tick(now) {
   // Arrastre del fotograma (en curso o recién terminado) para el escenario giratorio.
   const d = orbit || pending;
   if (d) { zones.drag = { name: d.name, dx: d.dx, dy: d.dy }; d.dx = 0; d.dy = 0; pending = null; }
+  if (zoom) { zones.zoom = zoom; zoom = null; }
   if (titleZone) {
     const r = rectOf(titleZone);
     const eyebrow = titleZone.querySelector('.eyebrow');
