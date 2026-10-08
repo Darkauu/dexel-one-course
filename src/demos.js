@@ -3,7 +3,7 @@
 // Todo el estado visual es función pura del tiempo del bucle.
 import * as THREE from 'three';
 import {
-  PALETTE, N, HALF, inPyramid, serpentine, scheduleEvents, TIMELINE,
+  PALETTE, STAND_GRAY, N, HALF, inPyramid, serpentine, scheduleEvents, TIMELINE,
   addLights, fitDistance, damp, smooth, easeInOut, clamp01,
 } from './shared.js';
 
@@ -51,7 +51,7 @@ export class Stage {
     this.period = TIMELINE.period;
 
     if (bed) {
-      const plate = box(BED, 0.6, BED, std(PALETTE.peachShade, 0.8), 0, -0.3, 0);
+      const plate = box(BED, 0.6, BED, std(STAND_GRAY, 0.8), 0, -0.3, 0);
       plate.castShadow = false;
       this.scene.add(plate);
     }

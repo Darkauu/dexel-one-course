@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from '../vendor/three-addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from '../vendor/three-addons/libs/meshopt_decoder.module.js';
 import glbBytes from './assets/creality-ender-3-pro.glb';
-import { PALETTE, damp, fitDistance } from './shared.js';
+import { PALETTE, STAND_GRAY, damp, fitDistance } from './shared.js';
 import { addLights } from './shared.js';
 
 // Color de la sección: el azul claro de «Ender 3 Pro».
@@ -21,9 +21,6 @@ const BASE = {                 // maqueta: materiales del modelo → tonos de la
   blue: PALETTE.peach,
   '': PALETTE.paperShade,
 };
-// Base donde se apoya la impresora: gris claro neutro (no es de la marca; separa la
-// maqueta, que va en tonos durazno, del suelo).
-const STAND_GRAY = '#C8C8C6';
 const DIM = DIM_COLOR;         // lo que no se explica en esta fase se apaga
 
 // Grupos por nombre de nodo (los nombres que deja GLTFLoader). `under` acota la
@@ -238,6 +235,15 @@ export class EnderDemo {
   buildExtras() { if (this.point === 'head') this.buildFlows(); }
   animateExtras(dt, tl) { this.animateFlows(dt, tl); }
 
+  // Hereda la cámara (valores actuales, no los objetivos) de otra escena de la Ender.
+  takeView(prev) {
+    if (!prev || !prev.orbit) return;
+    this.focus.copy(prev.focus);
+    this.zoom.k = prev.zoom.k;
+    this.orbit.az = prev.orbit.az;
+    this.orbit.el = prev.orbit.el;
+  }
+
   applyPhase(step) {
     if (step === this.phase || !this.ready) return;
     this.phase = step;
@@ -261,6 +267,8 @@ export class EnderDemo {
     this.focusTarget.copy(anchor || this.home);
     this.zoom.tk = v ? v.zoom : HOME.zoom;
     this.orbit.taz = v ? v.az : HOME.az;
+    // Por el camino más corto: si se giró varias vueltas, no se desenrolla entero.
+    this.orbit.taz += Math.PI * 2 * Math.round((this.orbit.az - this.orbit.taz) / (Math.PI * 2));
     this.orbit.tel = v ? v.el : HOME.el;
   }
 

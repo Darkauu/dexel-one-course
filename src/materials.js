@@ -27,6 +27,9 @@ const PERIOD = 6.5;
 // Guion de la carga, compartido por PLA y TPU.
 const T = { down: 1.0, contact: 1.7, squash: 2.05, release: 3.4, up: 4.3 };
 const LIFT = 3.2; // cuánto sube la pesa sobre el punto de contacto
+// Primer pico del rebote elástico de la rueda (fracción de su curva de 1,3 s) y su altura.
+const REBOUND_PEAK = (() => { let x = 0; while (x < 1 && easeElastic(x + 0.001) >= easeElastic(x)) x += 0.001; return x; })();
+const PEAK_SY = 0.65 + 0.35 * easeElastic(REBOUND_PEAK);
 
 // Carrete de pie (eje horizontal), girando despacio.
 function standingSpool(color) {
@@ -180,7 +183,13 @@ export class TpuDemo extends MaterialStage {
     if (tl < T.down) wy = this.tireTop + lift;
     else if (tl < T.contact) wy = this.tireTop + lift * (1 - easeInOut((tl - T.down) / (T.contact - T.down)));
     else if (tl < T.release) wy = this.tireTop * sy;
-    else wy = Math.max(this.tireTop * sy, this.tireTop + lift * easeInOut((tl - T.release) / (T.up - T.release)));
+    else if (tl < T.release + REBOUND_PEAK * 1.3) wy = this.tireTop * sy; // la rueda la empuja
+    else {
+      // Desde el pico del rebote (ahí ambas están quietas) la pesa sigue subiendo sola:
+      // se separa sin saltos ni retrocesos mientras la rueda termina de oscilar.
+      const t0 = T.release + REBOUND_PEAK * 1.3, y0 = this.tireTop * PEAK_SY;
+      wy = y0 + (this.tireTop + lift - y0) * easeInOut((tl - t0) / (T.up - t0));
+    }
     this.w.position.y = wy;
 
     // La chancleta se dobla en la punta y vuelve, dos veces por ciclo.

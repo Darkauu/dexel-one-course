@@ -161,7 +161,7 @@ export class GLLayer {
     const out = {};
     // Orden: escenas a pantalla completa (detrás), luego el título, luego el resto.
     const stages = [...zones.stages].sort((a, b) => Number(!!this.isFull(b.name)) - Number(!!this.isFull(a.name)));
-    let titleDone = false;
+    let titleDone = false, sawFull = false;
     for (const { name, rect } of stages) {
       if (!titleDone && !this.isFull(name)) { this.titlePass(dt, time, zones, pointer); titleDone = true; }
       const Scene = SCENES[name];
@@ -176,6 +176,11 @@ export class GLLayer {
       // contenedor. Su encuadre base se calcula sobre `frame`: del pie del título al
       // pie del escenario, con el ancho del escenario.
       if (Scene.fullFrame) {
+        // Cambio de punto (otra escena de la Ender): la nueva arranca desde la cámara
+        // de la anterior y vuelve a su propia vista con el mismo amortiguado.
+        sawFull = true;
+        if (this.lastFull && this.lastFull !== name && demo.takeView) demo.takeView(this.scenes.get(this.lastFull));
+        this.lastFull = name;
         const top = Math.min(rect.y, zones.titleBottom ?? rect.y);
         const frame = { x: rect.x, y: top, w: rect.w, h: rect.y + rect.h - top };
         const full = { x: 0, y: 0, w: this.size.w, h: this.size.h };
@@ -189,6 +194,7 @@ export class GLLayer {
       this.pass(demo.scene, demo.camera, rect);
     }
     if (!titleDone) this.titlePass(dt, time, zones, pointer);
+    if (!sawFull) this.lastFull = null; // fuera de la Ender: no hay vista que heredar
     r.setScissorTest(false);
     return out;
   }
