@@ -47,6 +47,8 @@
   /* Sección 02 (Ender 3 Pro): azul claro. Sobre ink 9,6 : 1; ink sobre él igual. */
   --ender-blue: #7FC8F8;
   --pin-orange: #FF7A1A;
+  /* Sección 03 (software): amarillo JavaScript. Sobre ink 12,6 : 1. */
+  --js-yellow: #F7DF1E;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -266,6 +268,9 @@ html:not(.has-3d) .tag--pinned { display: block; opacity: 1; transform: translat
 /* ---------- anatomía: modelo al centro, textos a los lados, fases abajo ---------- */
 .voxel-title .accent { color: var(--ender-blue); }
 html.has-3d .voxel-title .accent { color: transparent; }
+/* Línea «impact» (sección 03): amarillo JavaScript; en 3D la dibuja el título voxel. */
+.voxel-title .impact { color: var(--js-yellow); }
+html.has-3d .voxel-title .impact { color: transparent; }
 .slide--anatomy { grid-template-rows: minmax(0, 23fr) auto minmax(0, 60fr) auto; }
 .anatomy {
   display: grid;
@@ -568,6 +573,36 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .gap-nozzle { animation: none; transform: translateX(200px); }
   .ams-slot--0 { opacity: 1; }
   .boot, .tag, .controls { transition: none; }
+}
+
+/* ---------- diagrama de acción (sección 03) ---------- */
+/* Siete pasos en fila con flechas de píxeles. Un turno los recorre en orden (1,2 s
+   por paso): main.js marca el paso activo y su flecha con el mismo reloj de las
+   escenas 3D, así el salto del objeto y el resaltado coinciden. */
+.flow {
+  list-style: none; margin: 0; padding: 0; min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr) clamp(14px, 1.6vw, 28px)) minmax(0, 1fr);
+  align-items: stretch;
+}
+.flow-step { display: grid; grid-template-rows: minmax(0, 1fr) auto auto auto auto; gap: 0.35em; min-height: 0; text-align: center; }
+.flow-step .stage { min-height: 0; }
+.flow-step .stage svg { width: 70%; height: auto; max-height: 100%; }
+.flow-step h3 { margin: 0; font-weight: 900; text-transform: uppercase; font-size: clamp(16px, min(1.6vw, 2.8vh), 32px); line-height: 1; }
+.flow-step .body { margin: 0; font-size: clamp(12px, min(1vw, 1.9vh), 19px); line-height: 1.25; color: var(--paper); }
+.flow-index { color: var(--peach); }
+.flow-kind { color: var(--peach); margin-top: -0.1em; }
+.flow-arrow { align-self: center; justify-self: center; width: 100%; margin-top: -4em; }
+.flow-arrow svg { width: 100%; height: auto; display: block; fill: var(--peach-shade); }
+.flow-step h3 { transition: color 0.2s; }
+.flow-arrow svg { transition: fill 0.2s, transform 0.2s; }
+.flow-step.is-active h3 { color: var(--js-yellow); }
+.flow-arrow.is-active svg { fill: var(--js-yellow); transform: translateX(3px); }
+@media (max-width: 760px) {
+  .flow { grid-template-columns: 1fr; gap: 6px; overflow: auto; }
+  .flow-step { grid-template-columns: 30% 1fr; grid-template-rows: auto auto auto; text-align: left; }
+  .flow-step .stage { grid-row: 1 / span 4; height: 18svh; }
+  .flow-arrow { width: 24px; margin: 0 auto; transform: rotate(90deg); }
 }
 
 /* ---------- impresión: una diapositiva por página, estado final ---------- */

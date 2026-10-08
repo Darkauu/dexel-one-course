@@ -42,6 +42,9 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
   voxel vuelve al muro y el nuevo se arma desde él, como en la entrada inicial.
 - `data-title-accent="ENDER 3 PRO"`: esa línea del título recibe una sola onda
   arcoíris desde su centro hacia afuera y queda en el color de la sección.
+- `data-title-impact="SOFTWARE"`: esa línea no se arma cubo a cubo; entra completa
+  desde la cámara en amarillo JavaScript, golpea su lugar, sacude el bloque y suelta
+  chispas de soldadura en píxeles.
 - `data-steps="4"` + bloques `data-phase="1"` + botones `data-step-go="1"`: fases
   dentro de un punto. Los botones y las flechas del teclado recorren las fases; la
   diapositiva expone la fase en `data-step` (el esquema de respaldo la usa).
@@ -112,6 +115,11 @@ mueve el reloj único del deck mientras su ventana está abierta.
   de la fuente), `lcd` (la pantalla se enciende como una consola antigua, sobre su propia grilla
   de 128 × 64 puntos y a 15 cuadros por segundo: línea blanca y estrella de 4 puntas
   que revela la imagen, escrita con una fuente de 5 × 7) y `sd` (la tarjeta entra en la ranura).
+- `src/flow.js` — sección 03, punto 01: diagrama de acción (foto → IA → STL → Cura →
+  G-code → microSD → impresora). Un escenario por paso; las piezas de píxeles se
+  arman con vóxeles en una sola malla con solo las caras exteriores (`voxelMesh`), los
+  logos son formas extruidas. Un turno recorre los pasos: `main.js` resalta el paso
+  activo con el mismo reloj con que su objeto da el salto.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
