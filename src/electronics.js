@@ -177,7 +177,12 @@ export class EnderElecDemo extends EnderDemo {
     let v = new THREE.Vector3().crossVectors(n, u);
     if (toWorld(v).y < 0) { u.negate(); v.negate(); }
     const W = size.getComponent(axes[0]) * 0.86, H = size.getComponent(axes[1]) * 0.8;
-    const pos = center.clone().addScaledVector(n, size.getComponent(axes[2]) * 0.5 + size.getComponent(axes[2]) * 0.08 + 1e-4);
+    // Separación fija en unidades de escena (0,02 ≈ 1 mm real) sobre el vidrio: con la
+    // cámara en la vista general, una separación relativa al grosor del vidrio quedaba
+    // bajo la precisión del z-buffer y ambas capas parpadeaban en triángulos.
+    const worldPerLocal = n.clone().applyMatrix3(new THREE.Matrix3().setFromMatrix4(m.matrixWorld)).length() || 1;
+    const lift = 0.02 / worldPerLocal;
+    const pos = center.clone().addScaledVector(n, size.getComponent(axes[2]) * 0.5 + lift);
 
     const canvas = document.createElement('canvas');
     canvas.width = OUT_W; canvas.height = OUT_H;
@@ -186,7 +191,7 @@ export class EnderElecDemo extends EnderDemo {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     this.lcdTex = tex;
-    const face = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
     face.matrixAutoUpdate = false;
     face.matrix.makeBasis(u.multiplyScalar(W), v.multiplyScalar(H), n).setPosition(pos);
     m.add(face);
