@@ -395,6 +395,7 @@ html.has-3d .stage--model.is-loading .loading { opacity: 1; }
 .schematic path { fill: var(--peach-shade); }
 .slide[data-step="1"] .schematic path, .slide[data-step="2"] .schematic path, .slide[data-step="3"] .schematic path { fill: #6A4550; }
 .slide[data-step="1"] .sch-ext rect, .slide[data-step="2"] .sch-hot rect, .slide[data-step="3"] .sch-noz path { fill: var(--ender-blue); }
+.slide[data-step="1"] .sch-plate rect, .slide[data-step="2"] .sch-mat rect, .slide[data-step="3"] .sch-knob rect { fill: var(--ender-blue); }
 
 /* ---------- controles del presentador ---------- */
 .controls {
@@ -492,6 +493,25 @@ html.is-blank .blank { display: block; }
 .popup-body li::before { content: "▪"; color: var(--alert-yellow); margin-right: 0.6em; }
 .popup-art { width: 100%; height: auto; display: block; background: var(--ink); border: 2px solid var(--peach-shade); }
 /* Filamento que avanza por los tubos del AMS. */
+/* Distancia boquilla–cama: tres casos, la boquilla recorre la cama dejando la línea. */
+.gap-cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(10px, 1.4vw, 20px); }
+.gap-case { margin: 0; display: grid; gap: 10px; align-content: start; }
+.gap-case figcaption { display: grid; gap: 6px; }
+.gap-case figcaption p:not(.micro) { font-size: clamp(14px, 1.1vw, 17px); }
+.gap-label { fill: var(--peach); font-family: var(--f-mono); font-size: 12px; letter-spacing: 2px; }
+.gap-tag { font-weight: 800; padding-left: 10px; border-left: 4px solid currentColor; }
+.gap-case--close .gap-tag { color: var(--accent); }
+.gap-case--ok .gap-tag { color: var(--ender-blue); }
+.gap-case--far .gap-tag { color: var(--alert-orange); }
+.gap-nozzle { animation: gap-move 4s linear infinite; }
+.gap-bead { stroke-dashoffset: 0; animation: gap-draw 4s linear infinite; }
+.gap-case--close .gap-bead { animation-name: gap-draw-dashed; }
+@keyframes gap-move { 0% { transform: translateX(0); } 80%, 100% { transform: translateX(200px); } }
+@keyframes gap-draw { 0% { stroke-dasharray: 0 100; } 80%, 100% { stroke-dasharray: 100 0; } }
+/* Muy cerca: la línea sale cortada; se revela con una máscara del mismo recorrido. */
+@keyframes gap-draw-dashed { 0% { clip-path: inset(0 100% 0 0); } 80%, 100% { clip-path: inset(0 0 0 0); } }
+@media (max-width: 760px) { .gap-cases { grid-template-columns: 1fr; } }
+
 .ams-flow { stroke-dasharray: 10 8; animation: ams-flow 0.9s linear infinite; }
 @keyframes ams-flow { to { stroke-dashoffset: -18; } }
 .ams-out { animation: ams-swap 6s steps(1, end) infinite, ams-flow 0.9s linear infinite; stroke-dasharray: 10 8; }
@@ -537,7 +557,8 @@ html:not(.is-ready) .deck { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .subtitle { transform: none; }
-  .alert-btn, .sim-btn, .popup[open], .ams-flow, .ams-out, .ams-slot { animation: none; }
+  .alert-btn, .sim-btn, .popup[open], .ams-flow, .ams-out, .ams-slot, .gap-bead { animation: none; }
+  .gap-nozzle { animation: none; transform: translateX(200px); }
   .ams-slot--0 { opacity: 1; }
   .boot, .tag, .controls { transition: none; }
 }
