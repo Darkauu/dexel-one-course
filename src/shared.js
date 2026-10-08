@@ -12,6 +12,10 @@ export const PALETTE = {
   paperShade: '#DCDAD0',
 };
 
+// Base donde se apoyan los dioramas y la impresora: gris claro neutro (no es de la
+// marca; separa las maquetas, en tonos durazno, del suelo).
+export const STAND_GRAY = '#C8C8C6';
+
 // Amortiguación exponencial con constante de tiempo (independiente del framerate).
 export const damp = (current, target, tau, dt) => target + (current - target) * Math.exp(-dt / tau);
 

@@ -3,7 +3,7 @@
 // placa que sale de la resina) y, alrededor, lo que la rodea en un taller real.
 // Todo el estado visual es función pura del tiempo del bucle.
 import * as THREE from 'three';
-import { PALETTE, smooth, easeInOut, clamp01 } from './shared.js';
+import { PALETTE, STAND_GRAY, smooth, easeInOut, clamp01 } from './shared.js';
 import { Stage, box, std, makeHotend } from './demos.js';
 
 const PERIOD = 13;
@@ -24,7 +24,7 @@ export function cyl(rTop, rBottom, h, mat, x = 0, y = 0, z = 0, seg = 40) {
 export function plinth(scene, x, r) {
   // La cara superior queda apenas bajo y=0: ningún objeto apoyado comparte su plano
   // (evita el parpadeo de caras coplanares, sobre todo en piezas de doble cara).
-  const p = cyl(r, r, 0.6, std(PALETTE.peachShade, 0.85), x, -0.305, 0, 72);
+  const p = cyl(r, r, 0.6, std(STAND_GRAY, 0.85), x, -0.305, 0, 72);
   p.castShadow = false;
   scene.add(p);
 }

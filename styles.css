@@ -287,6 +287,12 @@ html.has-3d .voxel-title .accent { color: transparent; }
 .specs-list dt { margin-bottom: 0.15em; }
 .specs-list dd { margin: 0; font-weight: 800; font-size: clamp(16px, min(1.45vw, 2.6vh), 30px); }
 .side .hint { color: var(--peach-shade); margin-top: 0.4em; }
+/* Sección de la Ender: el modelo y su base gris pasan por detrás del texto lateral.
+   Texto claro con halo en ink-deep (como las etiquetas sobre piezas): se lee igual
+   sobre el fondo (paper 15 : 1, peach 10 : 1) y sobre la base gris clara. */
+.slide--anatomy .side { text-shadow: 0 0 2px var(--ink-deep), 0 0 4px var(--ink-deep), 0 0 8px var(--ink-deep), 0 1px 2px var(--ink-deep); }
+.slide--anatomy .side .hint { color: var(--paper); font-weight: 800; }
+.slide--anatomy .side dt { color: var(--peach); }
 .specs-head { display: flex; align-items: center; justify-content: space-between; color: var(--paper); }
 /* Botón «Simulación»: versalitas, oscila entre rojo y rojo claro (4,8 : 1 y 8,5 : 1 sobre ink-deep). */
 .specs-actions { display: inline-flex; align-items: center; gap: 0.6em; }

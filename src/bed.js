@@ -42,7 +42,7 @@ export class EnderBedDemo extends EnderDemo {
     const matSize = matBox.getSize(new V());
     this.matSize = matSize;
     this.matCenter = matBox.getCenter(new V());
-    this.matCenter.y = matBox.max.y - 0.012;
+    this.matCenter.y = plateBox.max.y + 0.013; // apoyada sobre la placa, sin hundirse
     const matGeo = new THREE.BoxGeometry(matSize.x, 0.024, matSize.z, 64, 1, 1);
     this.matRest = matGeo.attributes.position.array.slice();
     const orig = G.mat[0];
@@ -194,7 +194,7 @@ export class EnderBedDemo extends EnderDemo {
     const lift = (smooth(0.2, 1.4, u) - smooth(5.6, 6.8, u)) * w;
     const bend = (smooth(1.5, 2.5, u) - smooth(4.3, 5.3, u)) * w;
     const pop = (smooth(2.3, 2.8, u) - smooth(4.0, 4.6, u)) * w;
-    const k = 0.3 * bend;
+    const k = 0.24 * bend;
 
     // Curvatura: cada vértice gira alrededor de un centro bajo la lámina (arco convexo).
     if (Math.abs(k - this.matK) > 1e-4) {
@@ -214,9 +214,13 @@ export class EnderBedDemo extends EnderDemo {
     }
     // Pose de la lámina: arriba y al frente, inclinada hacia la cámara; sigue la
     // inclinación de la placa (fase de nivelación).
-    const c = this.matCenter;
-    this.tmpQ.setFromAxisAngle(this.tmpV.set(1, 0, 0), 0.32 * lift);
-    this.tmpM.compose(this.tmpV.set(c.x, c.y + 1.1 * lift, c.z + 0.8 * lift), this.tmpQ, this.tmpS.set(1, 1, 1));
+    // La altura suma lo que bajan los bordes al arquearse y al inclinarse: así ningún
+    // punto de la lámina queda bajo la cara de la placa.
+    const c = this.matCenter, tilt = 0.18 * lift;
+    const edgeDrop = k > 1e-4 ? (1 - Math.cos(this.matSize.x * 0.5 * k)) / k : 0;
+    const tiltDrop = Math.sin(tilt) * this.matSize.z * 0.5;
+    this.tmpQ.setFromAxisAngle(this.tmpV.set(1, 0, 0), tilt);
+    this.tmpM.compose(this.tmpV.set(c.x, c.y + 0.6 * lift + edgeDrop + tiltDrop, c.z + 0.8 * lift), this.tmpQ, this.tmpS.set(1, 1, 1));
     this.matMesh.matrix.multiplyMatrices(this.M, this.tmpM);
     this.matMesh.matrixWorldNeedsUpdate = true;
 
