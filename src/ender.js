@@ -43,15 +43,24 @@ const PARTS = {
   extGear: { name: '1_28', under: 'Extruder_&_X_Axis_Assembly' },
   extArm: { name: '1_29', under: 'Extruder_&_X_Axis_Assembly' },
   heatsink: { names: ['1_7', '1_8', '2_2', '1_16'], under: 'Extruder_Assembly' },
-  hotendFan: { name: '1_17', under: 'Extruder_Assembly' },
   heaterBlock: { names: ['1_10', '1_9', '1_12', '2_3', '1_13', '2_4', '1_14'], under: 'Extruder_Assembly' },
   block: { name: '1_10', under: 'Extruder_Assembly' },
   nozzle: { name: '1_11', under: 'Extruder_Assembly' },
   hotendInlet: { name: '1_16', under: 'Extruder_Assembly' },   // racor de entrada del hotend
   extIdler: { name: '1_31', under: 'Extruder_&_X_Axis_Assembly' },   // rodamiento del brazo
   extCoupler: { name: '1_27', under: 'Extruder_&_X_Axis_Assembly' }, // racor del tubo bowden
-  // Carcasa y ventilador frontal: se quitan para ver el interior del hotend.
-  shroud: { names: ['1_15', '1_19', '1_18', '2_6', '3_4', '4_1', '1_20', '2_7', '3_5', '4_2'], under: 'Extruder_Assembly' },
+  // Tapa del hotend con lo que va atornillado a ella: el ventilador frontal (enfría
+  // el disipador, 1_19) y el de capa a la derecha (turbina, 1_17). Sale entera.
+  shroud: { names: ['1_15', '1_19', '1_20', '2_7', '3_5', '4_2', '1_17', '1_18', '2_6', '3_4', '4_1'], under: 'Extruder_Assembly' },
+  // Punto 04 / Electrónica y control.
+  layerFan: { names: ['1_17', '1_18', '2_6', '3_4', '4_1'], under: 'Extruder_Assembly' },
+  layerFanBody: { name: '1_17', under: 'Extruder_Assembly' },
+  psu: { names: ['Power_Supply_1', 'Power_Switch_Assembly'], under: 'Power_Supply' },
+  psuSwitch: { name: 'Power_Switch_Assembly', under: 'Power_Supply' },
+  display: { name: 'Display', under: 'Lower_Assembly' },
+  lcdKnob: { name: 'Knob', under: 'Display' },
+  lcdScreen: { name: 'Screen', under: 'Display' },
+  controlBox: { name: 'Control_Box', under: 'Lower_Assembly' },
   // Cama (punto 03). El resorte de cada esquina no viene en el modelo: lo agrega bed.js.
   bedMount: { name: 'Mounting_Plate', under: 'Bed' },
   buildPlate: { name: 'Build_Plate', under: 'Bed' },
@@ -76,7 +85,7 @@ const POINTS = {
     { lit: null, pins: {} },
     { lit: ['extruder'], flows: ['feed'], pins: { 'e-motor': 'motorE', 'e-gear': 'extGear', 'e-arm': 'extArm' },
       view: { focus: 'extruder', zoom: 0.3, az: -2.45, el: 0.5 } },
-    { lit: ['heatsink', 'heaterBlock', 'hotendFan'], hide: ['shroud'], flows: ['feed', 'melt'], pins: { 'h-sink': 'heatsink', 'h-block': 'block', 'h-fan': 'hotendFan' },
+    { lit: ['heatsink', 'heaterBlock'], hide: ['shroud'], flows: ['feed', 'melt'], pins: { 'h-sink': 'heatsink', 'h-block': 'block' },
       view: { focus: 'heaterBlock', zoom: 0.24, az: 0.4, el: 0.16 } },
     { lit: ['nozzle'], hide: ['shroud'], flows: ['melt'], pins: { 'n-nozzle': 'nozzle' },
       view: { focus: 'nozzle', zoom: 0.12, az: 0.35, el: 0.1 } },
@@ -89,6 +98,17 @@ const POINTS = {
       view: { focus: 'matLift', zoom: 0.46, az: 0.45, el: 0.32 } },
     { lit: ['knobs', 'springs', 'bedScrews'], fx: 'level', pins: { 'b-knob': 'knobFront', 'b-spring': 'springFront' },
       view: { focus: 'knobFront', zoom: 0.26, az: 0.55, el: 0.22 } },
+  ],
+  elec: [
+    { lit: null, pins: {} },
+    { lit: ['layerFan'], fx: 'air', flows: ['melt'], pins: { 'c-fan': 'layerFanBody', 'c-air': 'airOut' },
+      view: { focus: 'layerFanBody', zoom: 0.17, az: 1.05, el: 0.18 } },
+    { lit: ['psu'], fx: 'power', pins: { 'c-psu': 'psu', 'c-switch': 'psuSwitch' },
+      view: { focus: 'psu', zoom: 0.42, az: 1.75, el: 0.28 } },
+    { lit: ['display'], fx: 'lcd', pins: { 'c-screen': 'lcdFace', 'c-knob': 'lcdKnob' },
+      view: { focus: 'lcdFace', zoom: 0.2, az: 0.3, el: 0.42 } },
+    { lit: ['controlBox'], fx: 'sd', pins: { 'c-sd': 'sdSlot', 'c-board': 'controlBox' },
+      view: { focus: 'sdSlot', zoom: 0.18, az: 0.35, el: 0.22 } },
   ],
 };
 const HOME = { zoom: 1, az: 0.6, el: 0.32 };

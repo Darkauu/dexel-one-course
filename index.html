@@ -456,7 +456,6 @@
             <p class="micro tag pin" data-pin="e-arm"><b>Brazo con resorte</b> / Presión</p>
             <p class="micro tag pin" data-pin="h-sink"><b>Disipador</b> / Frío</p>
             <p class="micro tag pin" data-pin="h-block"><b>Bloque calefactor</b> / Caliente</p>
-            <p class="micro tag pin" data-pin="h-fan"><b>Ventilador</b></p>
             <p class="micro tag pin" data-pin="n-nozzle"><b>Boquilla</b> / 0,4 mm</p>
           <p class="micro loading">Cargando / Modelo</p>
         </div>
@@ -470,7 +469,7 @@
             <p class="micro hint">Si el brazo aprieta poco, el engranaje patina; si aprieta mucho, aplasta el filamento</p>
           </div>
           <div class="phase-block" data-phase="2">
-            <dl class="specs-list"><div><dt class="micro">Calentador</dt><dd>Cartucho 24 V · 40 W</dd></div><div><dt class="micro">Sensor</dt><dd>Termistor NTC 100K</dd></div><div><dt class="micro">Ventilador</dt><dd>40 mm, siempre activo</dd></div><div><dt class="micro">PLA</dt><dd>190–220 °C</dd></div></dl>
+            <dl class="specs-list"><div><dt class="micro">Calentador</dt><dd>Cartucho 24 V · 40 W</dd></div><div><dt class="micro">Sensor</dt><dd>Termistor NTC 100K</dd></div><div><dt class="micro">Ventilador</dt><dd>40 mm en la tapa, siempre activo</dd></div><div><dt class="micro">PLA</dt><dd>190–220 °C</dd></div></dl>
             <p class="micro hint">Quitamos la carcasa para ver el interior</p>
           </div>
           <div class="phase-block" data-phase="3">
@@ -570,6 +569,98 @@
         <button type="button" data-step-go="1"><span class="micro">01</span>Cama caliente</button>
         <button type="button" data-step-go="2"><span class="micro">02</span>Superficie</button>
         <button type="button" data-step-go="3"><span class="micro">03</span>Ruedas de nivelación</button>
+      </nav>
+    </section>
+
+    <section class="slide slide--anatomy" id="s9" data-section="02"
+             data-title-lines="ANATOMÍA DE LA|ENDER 3 PRO||ANATOMÍA|DE LA|ENDER 3 PRO"
+             data-title-accent="ENDER 3 PRO"
+             data-steps="5">
+
+      <div class="title-zone" data-3d="title">
+        <p class="micro eyebrow">Sección 02 / Anatomía <span class="counter" data-counter>04 / 04</span></p>
+        <h1 class="voxel-title"><span class="line">Anatomía de la</span> <span class="line accent">Ender 3 Pro</span></h1>
+      </div>
+
+      <h2 class="subtitle">
+        <span class="micro">Punto 04</span>
+        Electrónica y control
+      </h2>
+
+      <div class="anatomy">
+        <aside class="side side--left">
+          <div class="phase-block" data-phase="0">
+            <p class="micro">Fase 00 / Inicio</p>
+            <h3>Lo que no se mueve</h3>
+            <p class="body">Detrás de los ejes hay piezas que <b>alimentan, enfrían y controlan</b> la impresora: un ventilador que endurece cada capa, la fuente que da energía, la pantalla con su perilla y la ranura por donde entra el archivo.</p>
+          </div>
+          <div class="phase-block" data-phase="1">
+            <p class="micro">Fase 01</p>
+            <h3>Ventilador de capa</h3>
+            <p class="body">Una <b>turbina</b> sopla por un conducto justo <b>debajo de la boquilla</b>. Enfría el plástico recién puesto para que se endurezca antes de la capa siguiente: mejora voladizos, puentes y detalles. A diferencia del ventilador del disipador, este <b>se regula</b> desde el archivo.</p>
+          </div>
+          <div class="phase-block" data-phase="2">
+            <p class="micro">Fase 02</p>
+            <h3>Fuente de poder</h3>
+            <p class="body">Convierte la corriente de la pared (alterna, 110–220 V) en <b>24 V continua</b>, la que usan los motores, el hotend y la cama. La cama caliente es lo que <b>más consume</b>.</p>
+          </div>
+          <div class="phase-block" data-phase="3">
+            <p class="micro">Fase 03</p>
+            <h3>Pantalla y perilla</h3>
+            <p class="body">Una pantalla <b>LCD de 128 × 64 puntos</b> y una perilla que <b>gira y se presiona</b>. Con ellas se elige el archivo, se precalienta, se mueve cada eje y se ajusta la impresión mientras ocurre.</p>
+          </div>
+          <div class="phase-block" data-phase="4">
+            <p class="micro">Fase 04</p>
+            <h3>Ranura microSD</h3>
+            <p class="body">La Ender 3 Pro imprime <b>sin computadora</b>: el archivo en <b>G-code</b> se copia a una tarjeta microSD, se inserta en la ranura y se elige desde la pantalla. La placa base lo lee <b>línea por línea</b> mientras imprime.</p>
+          </div>
+        </aside>
+        <div class="stage stage--model" data-3d="ender-elec" data-orbit aria-label="Modelo 3D de la Ender 3 Pro; arrastra para girarlo">
+          <svg class="schematic" viewBox="0 0 470 650" role="img" aria-label="Esquema: ventilador de capa, fuente de poder, pantalla con perilla y ranura microSD">
+  <g class="sch-fan"><rect x="60" y="90" width="110" height="110"/></g>
+  <g class="sch-psu"><rect x="300" y="90" width="110" height="250"/></g>
+  <g class="sch-lcd"><rect x="60" y="400" width="200" height="120"/><rect x="280" y="440" width="50" height="50"/></g>
+  <g class="sch-sd"><rect x="60" y="560" width="160" height="50"/></g>
+</svg>
+            <p class="micro tag pin" data-pin="c-fan"><b>Ventilador de capa</b> / Turbina 40 mm</p>
+            <p class="micro tag pin" data-pin="c-air"><b>Aire</b> / Justo bajo la boquilla</p>
+            <p class="micro tag pin" data-pin="c-psu"><b>Fuente</b> / 24 V</p>
+            <p class="micro tag pin" data-pin="c-switch"><b>Interruptor</b> / Encendido</p>
+            <p class="micro tag pin" data-pin="c-screen"><b>Pantalla LCD</b> / 128 × 64</p>
+            <p class="micro tag pin" data-pin="c-knob"><b>Perilla</b> / Gira y presiona</p>
+            <p class="micro tag pin" data-pin="c-sd"><b>Ranura microSD</b> / Entra el archivo</p>
+            <p class="micro tag pin" data-pin="c-board"><b>Placa base</b> / Lee el G-code</p>
+          <p class="micro loading">Cargando / Modelo</p>
+        </div>
+        <aside class="side side--right">
+          <div class="phase-block" data-phase="0">
+            <dl class="specs-list"><div><dt class="micro">Voltaje</dt><dd>24 V</dd></div><div><dt class="micro">Control</dt><dd>Placa base 8 bits</dd></div><div><dt class="micro">Pantalla</dt><dd>LCD 12864</dd></div><div><dt class="micro">Archivos</dt><dd>microSD (G-code)</dd></div></dl>
+            <p class="micro hint">Elige una fase abajo · La cámara se acerca a cada pieza</p>
+          </div>
+          <div class="phase-block" data-phase="1">
+            <dl class="specs-list"><div><dt class="micro">Tipo</dt><dd>Turbina (blower)</dd></div><div><dt class="micro">Control</dt><dd>0–100 % desde el G-code</dd></div><div><dt class="micro">PLA</dt><dd>100 % tras la 1.ª capa</dd></div><div><dt class="micro">PETG</dt><dd>30–50 %</dd></div></dl>
+            <p class="micro hint">La primera capa se imprime sin aire: así se pega mejor a la cama</p>
+          </div>
+          <div class="phase-block" data-phase="2">
+            <dl class="specs-list"><div><dt class="micro">Entrada</dt><dd>110–220 V alterna</dd></div><div><dt class="micro">Salida</dt><dd>24 V continua</dd></div><div><dt class="micro">Potencia</dt><dd>≈ 350 W</dd></div><div><dt class="micro">Mayor consumo</dt><dd>La cama caliente</dd></div></dl>
+            <p class="micro hint">Revisa el selector de voltaje antes de conectarla por primera vez</p>
+          </div>
+          <div class="phase-block" data-phase="3">
+            <dl class="specs-list"><div><dt class="micro">Pantalla</dt><dd>LCD monocromo</dd></div><div><dt class="micro">Girar</dt><dd>Moverse en el menú</dd></div><div><dt class="micro">Presionar</dt><dd>Elegir</dd></div><div><dt class="micro">Muestra</dt><dd>Temperaturas y avance</dd></div></dl>
+            <p class="micro hint">Arriba: temperatura objetivo; abajo: la actual de boquilla y cama</p>
+          </div>
+          <div class="phase-block" data-phase="4">
+            <dl class="specs-list"><div><dt class="micro">Tarjeta</dt><dd>microSD</dd></div><div><dt class="micro">Formato</dt><dd>FAT32</dd></div><div><dt class="micro">Archivo</dt><dd>.gcode</dd></div><div><dt class="micro">Se genera con</dt><dd>Un laminador (slicer)</dd></div></dl>
+            <p class="micro hint">No la saques mientras imprime: el archivo se lee durante toda la impresión</p>
+          </div>
+        </aside>
+      </div>
+
+      <nav class="phases" aria-label="Fases del punto">
+        <button type="button" data-step-go="1"><span class="micro">01</span>Ventilador de capa</button>
+        <button type="button" data-step-go="2"><span class="micro">02</span>Fuente de poder</button>
+        <button type="button" data-step-go="3"><span class="micro">03</span>Pantalla y perilla</button>
+        <button type="button" data-step-go="4"><span class="micro">04</span>Ranura microSD</button>
       </nav>
     </section>
 
