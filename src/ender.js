@@ -21,6 +21,9 @@ const BASE = {                 // maqueta: materiales del modelo → tonos de la
   blue: PALETTE.peach,
   '': PALETTE.paperShade,
 };
+// Base donde se apoya la impresora: gris claro neutro (no es de la marca; separa la
+// maqueta, que va en tonos durazno, del suelo).
+const STAND_GRAY = '#C8C8C6';
 const DIM = DIM_COLOR;         // lo que no se explica en esta fase se apaga
 
 // Grupos por nombre de nodo (los nombres que deja GLTFLoader). `under` acota la
@@ -141,7 +144,7 @@ export class EnderDemo {
     this.period = 1e9; // no hay bucle: todo depende de la fase y del giro
     addLights(this.scene, { shadow: true, shadowSize: 9 });
 
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.2, 0.5, 72), new THREE.MeshStandardMaterial({ color: PALETTE.peachShade, roughness: 0.85 }));
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.2, 0.5, 72), new THREE.MeshStandardMaterial({ color: STAND_GRAY, roughness: 0.85 }));
     disc.position.y = -0.26;
     disc.receiveShadow = true;
     this.scene.add(disc);

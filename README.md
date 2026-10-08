@@ -109,9 +109,9 @@ mueve el reloj único del deck mientras su ventana está abierta.
   la lámina doblable se generan en código; el resto viene del modelo.
 - `src/electronics.js` — punto 04: electrónica y control. Efectos por fase: `air`
   (corrientes del ventilador de capa bajo la boquilla), `power` (pulsos por el cable
-  de la fuente), `lcd` (la pantalla se enciende como una consola antigua: línea
-  blanca y estrella de 4 puntas que revela la imagen; la imagen se dibuja punto por
-  punto en 128 × 64 con una fuente de 5 × 7) y `sd` (la tarjeta entra en la ranura).
+  de la fuente), `lcd` (la pantalla se enciende como una consola antigua, sobre su propia grilla
+  de 128 × 64 puntos y a 15 cuadros por segundo: línea blanca y estrella de 4 puntas
+  que revela la imagen, escrita con una fuente de 5 × 7) y `sd` (la tarjeta entra en la ranura).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
