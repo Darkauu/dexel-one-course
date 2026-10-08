@@ -182,8 +182,6 @@ export class EnderElecDemo extends EnderDemo {
     const canvas = document.createElement('canvas');
     canvas.width = OUT_W; canvas.height = OUT_H;
     this.lcdCtx = canvas.getContext('2d');
-    this.lcdImg = document.createElement('canvas');
-    this.lcdImg.width = OUT_W; this.lcdImg.height = OUT_H;
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
@@ -195,7 +193,6 @@ export class EnderElecDemo extends EnderDemo {
     this.lcdFace = face;
     m.updateMatrixWorld(true);
     this.anchors.lcdFace = new THREE.Vector3().setFromMatrixPosition(face.matrixWorld);
-    this.lcdLast = -1;
     this.lcdState = '';
     this.drawLcdOff();
   }
@@ -226,14 +223,6 @@ export class EnderElecDemo extends EnderDemo {
     rect(0, 31, W - 1, 41); text('X  0  Y  0  Z 0.0', 3, 33, 0);
     text('FR100%', 2, 45); frame(42, 45, 92, 51); text('00:00', 97, 45);
     text(hot < 199 ? 'CALENTANDO...' : 'LISTA PARA IMPRIMIR', 2, 56);
-
-    const o = this.lcdImg.getContext('2d');
-    o.fillStyle = LCD.bg; o.fillRect(0, 0, OUT_W, OUT_H);
-    const c = LCD.cell, g = c - 1;
-    for (const [v, color] of [[0, LCD.off], [1, LCD.on]]) {
-      o.fillStyle = color;
-      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (px[y * W + x] === v) o.fillRect(x * c, y * c, g, g);
-    }
   }
 
   drawLcdOff() {
@@ -242,62 +231,62 @@ export class EnderElecDemo extends EnderDemo {
     this.lcdTex.needsUpdate = true;
   }
 
-  // Estrella de 4 puntas (lados cóncavos), centrada.
-  starPath(ctx, R) {
-    const cx = OUT_W / 2, cy = OUT_H / 2, r = R * 0.12;
-    ctx.beginPath();
-    for (let k = 0; k < 4; k++) {
-      const a = k * Math.PI / 2, b = a + Math.PI / 4, c = a + Math.PI / 2;
-      if (k === 0) ctx.moveTo(cx + Math.cos(a) * R, cy - Math.sin(a) * R);
-      ctx.quadraticCurveTo(cx + Math.cos(b) * r, cy - Math.sin(b) * r, cx + Math.cos(c) * R, cy - Math.sin(c) * R);
+  // Dibuja la pantalla celda por celda. state(x, y): 0 apagado (negro), 1 blanco,
+  // 2 la imagen real (punto prendido o apagado del LCD).
+  renderCells(state) {
+    const ctx = this.lcdCtx, c = LCD.cell, g = c - 1, W = LCD.w, H = LCD.h, px = this.lcdPx;
+    ctx.fillStyle = '#05060C'; ctx.fillRect(0, 0, OUT_W, OUT_H);
+    const st = this.lcdState8 || (this.lcdState8 = new Uint8Array(W * H));
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) st[y * W + x] = state(x, y);
+    ctx.fillStyle = LCD.bg;
+    for (let i = 0; i < W * H; i++) if (st[i] === 2) ctx.fillRect((i % W) * c, ((i / W) | 0) * c, c, c);
+    for (const [want, color] of [[0, LCD.off], [1, LCD.on]]) {
+      ctx.fillStyle = color;
+      for (let i = 0; i < W * H; i++) if (st[i] === 2 && px[i] === want) ctx.fillRect((i % W) * c, ((i / W) | 0) * c, g, g);
     }
-    ctx.closePath();
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < W * H; i++) if (st[i] === 1) ctx.fillRect((i % W) * c, ((i / W) | 0) * c, g, g);
   }
 
-  animateLcd(dt) {
+  animateLcd() {
     if (!this.lcdTex) return;
     const on = this.phases[this.phase]?.fx === 'lcd';
     if (!on) {
       if (this.lcdState !== 'off') { this.drawLcdOff(); this.lcdState = 'off'; }
       return;
     }
-    const s = this.clock.lcd;
-    const ctx = this.lcdCtx, W = OUT_W, H = OUT_H;
-    const heat = smooth(2.2, 14, s);
-    const hot = 26 + 174 * heat, bed = 26 + 34 * smooth(2.2, 10, s);
-    const booting = s < 2.3;
-    // Tras el encendido, la imagen se rehace unas 6 veces por segundo (temperaturas).
-    if (!booting && s - this.lcdLast < 0.16 && this.lcdState === 'run') return;
-    this.lcdLast = s;
-    if (!booting || s > 0.55) this.composeLcdImage(hot, bed);
+    // Reloj a saltos de 1/15 s: el encendido avanza por cuadros, como en una consola.
+    const s = Math.floor(this.clock.lcd * 15) / 15;
+    const frame = Math.round(s * 15);
+    if (frame === this.lcdFrame && this.lcdState !== 'off') return;
+    this.lcdFrame = frame;
+    const booting = s < 2.0;
+    // Tras el encendido, las temperaturas se rehacen 5 veces por segundo.
+    if (!booting && frame % 3 !== 0 && this.lcdState === 'run') return;
+    const hot = 26 + 174 * smooth(2.0, 14, s), bed = 26 + 34 * smooth(2.0, 10, s);
+    this.composeLcdImage(hot, bed);
+    const cx = LCD.w / 2, cy = LCD.h / 2;
 
-    ctx.save();
-    ctx.fillStyle = '#05060C'; ctx.fillRect(0, 0, W, H);
     if (s < 0.15) {
-      // negro
-    } else if (s < 0.55) {
-      // 1) Línea blanca: nace en el centro y se estira a lo ancho; luego se recoge.
-      const grow = smooth(0.15, 0.4, s), shrink = smooth(0.42, 0.55, s);
-      const lw = W * grow * (1 - shrink) + 6;
-      ctx.shadowColor = '#fff'; ctx.shadowBlur = 18;
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(W / 2 - lw / 2, H / 2 - 2, lw, 4);
-    } else if (s < 1.8) {
-      // 2) Estrella de 4 puntas: se abre desde el centro con borde blanco y revela la imagen.
-      const t = (s - 0.55) / 1.25;
-      const R = 10 + 760 * t * t * t;
-      ctx.save(); this.starPath(ctx, R); ctx.clip(); ctx.drawImage(this.lcdImg, 0, 0); ctx.restore();
-      this.starPath(ctx, R);
-      ctx.shadowColor = '#fff'; ctx.shadowBlur = 16;
-      ctx.lineWidth = 6; ctx.strokeStyle = '#fff'; ctx.lineJoin = 'round';
-      ctx.stroke();
+      this.renderCells(() => 0);                               // negro
+    } else if (s < 0.6) {
+      // 1) Línea blanca de 2 puntos de alto: nace en el centro, se estira y se recoge.
+      const half = Math.round(cx * smooth(0.15, 0.4, s) * (1 - smooth(0.45, 0.6, s))) + 1;
+      this.renderCells((x, y) => ((y === cy - 1 || y === cy) && Math.abs(x + 0.5 - cx) <= half ? 1 : 0));
+    } else if (s < 1.75) {
+      // 2) Estrella de 4 puntas (|x|^½ + |y|^½ ≤ R^½) que se abre con borde blanco.
+      const t = (s - 0.6) / 1.15;
+      const R = 2 + 200 * t * t * t, Rb = R * 1.35 + 3;
+      const sR = Math.sqrt(R), sRb = Math.sqrt(Rb);
+      this.renderCells((x, y) => {
+        const d = Math.sqrt(Math.abs(x + 0.5 - cx)) + Math.sqrt(Math.abs(y + 0.5 - cy));
+        return d <= sR ? 2 : d <= sRb ? 1 : 0;
+      });
+    } else if (s < 1.88) {
+      this.renderCells(() => 1);                               // destello: dos cuadros en blanco
     } else {
-      // 3) Imagen completa, con un destello que se apaga.
-      ctx.drawImage(this.lcdImg, 0, 0);
-      const flash = 1 - smooth(1.8, 2.3, s);
-      if (flash > 0) { ctx.globalAlpha = flash * 0.55; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+      this.renderCells(() => 2);                               // la imagen
     }
-    ctx.restore();
     this.lcdTex.needsUpdate = true;
     this.lcdState = booting ? 'boot' : 'run';
   }
@@ -344,7 +333,9 @@ export class EnderElecDemo extends EnderDemo {
     const box = boxOf(this.groups.controlBox || []);
     if (box.isEmpty()) return;
     const V = THREE.Vector3;
-    const slotPos = new V(box.max.x - 1.5, box.min.y + (box.max.y - box.min.y) * 0.82, box.max.z);
+    // Ranura medida en la malla de la caja (cara frontal z = 2,495): x −2,29…−1,98,
+    // y 0,79…0,83. Al lado está el USB (x −1,89…−1,73).
+    const slotPos = new V(-2.135, 0.81, 2.495);
     const card = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.02, 0.3), new THREE.MeshStandardMaterial({ color: '#1C1C22', roughness: 0.5 }));
     const label = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.004, 0.17), new THREE.MeshStandardMaterial({ color: PALETTE.accent, roughness: 0.5 }));
@@ -353,7 +344,7 @@ export class EnderElecDemo extends EnderDemo {
     card.add(body, label);
     card.visible = false;
     this.scene.add(card);
-    this.sd = { card, slotPos, zIn: slotPos.z - 0.15 + 0.07, zOut: slotPos.z + 0.55 };
+    this.sd = { card, slotPos, zIn: slotPos.z - 0.15 + 0.035, zOut: slotPos.z + 0.55 };
     this.anchors.sdSlot = slotPos.clone();
   }
 
@@ -383,7 +374,7 @@ export class EnderElecDemo extends EnderDemo {
     this.animateFlows(dt, tl);
     this.animateAir();
     this.animatePower();
-    this.animateLcd(dt);
+    this.animateLcd();
     this.animateKnob();
     this.animateSd();
   }
