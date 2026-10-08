@@ -102,6 +102,11 @@ mueve el reloj único del deck mientras su ventana está abierta.
   la carcasa del ventilador se desliza hacia afuera en vez de desaparecer), qué flujos
   de filamento anima (`flows`: `feed` por el extrusor, `melt` saliendo de la boquilla)
   y hacia dónde se acerca la cámara (`view`).
+- `src/bed.js` — punto 03: cama caliente y ruedas de nivelación. Extiende la escena
+  de la Ender con un efecto por fase (`fx` en `POINTS`): `heat` (calor que sube de la
+  placa), `peel` (la lámina magnética se levanta, se dobla y suelta la pieza) y
+  `level` (una rueda gira y su esquina sube y baja sobre el resorte). Los resortes y
+  la lámina doblable se generan en código; el resto viene del modelo.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.

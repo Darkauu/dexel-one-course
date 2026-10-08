@@ -487,6 +487,92 @@
       </nav>
     </section>
 
+    <section class="slide slide--anatomy" id="s8" data-section="02"
+             data-title-lines="ANATOMÍA DE LA|ENDER 3 PRO||ANATOMÍA|DE LA|ENDER 3 PRO"
+             data-title-accent="ENDER 3 PRO"
+             data-steps="4">
+
+      <div class="title-zone" data-3d="title">
+        <p class="micro eyebrow">Sección 02 / Anatomía <span class="counter" data-counter>03 / 03</span></p>
+        <h1 class="voxel-title"><span class="line">Anatomía de la</span> <span class="line accent">Ender 3 Pro</span></h1>
+      </div>
+
+      <h2 class="subtitle">
+        <span class="micro">Punto 03</span>
+        Cama caliente y ruedas de nivelación
+      </h2>
+
+      <div class="anatomy">
+        <aside class="side side--left">
+          <div class="phase-block" data-phase="0">
+            <p class="micro">Fase 00 / Inicio</p>
+            <h3>La cama</h3>
+            <p class="body">Aquí nace la pieza. La primera capa se pega a la cama, así que tiene que estar <b>caliente</b>, <b>limpia</b> y <b>a la misma distancia</b> de la boquilla en todos sus puntos.</p>
+          </div>
+          <div class="phase-block" data-phase="1">
+            <p class="micro">Fase 01</p>
+            <h3>Cama caliente</h3>
+            <p class="body">Una placa de <b>aluminio</b> con una resistencia pegada por debajo. Mantiene tibia la base de la pieza: el plástico no se encoge de golpe y las esquinas <b>no se levantan</b> (el famoso <i>warping</i>).</p>
+          </div>
+          <div class="phase-block" data-phase="2">
+            <p class="micro">Fase 02</p>
+            <h3>Superficie</h3>
+            <p class="body">Sobre la placa va una <b>lámina magnética flexible</b>. La pieza se adhiere a su textura mientras imprime; al terminar se retira la lámina, se <b>dobla</b> un poco y la pieza <b>se suelta sola</b>.</p>
+          </div>
+          <div class="phase-block" data-phase="3">
+            <p class="micro">Fase 03</p>
+            <h3>Ruedas de nivelación</h3>
+            <p class="body">Bajo cada esquina hay una <b>rueda</b> y un <b>resorte</b>. Al girar la rueda, esa esquina sube o baja. Se ajustan las cuatro hasta que la boquilla quede <b>a la misma altura</b> sobre toda la cama.</p>
+          </div>
+        </aside>
+        <div class="stage stage--model" data-3d="ender-bed" data-orbit aria-label="Modelo 3D de la Ender 3 Pro; arrastra para girarlo">
+          <svg class="schematic" viewBox="0 0 470 650" role="img" aria-label="Esquema de la cama vista de lado: lámina, placa, resortes, ruedas y carro">
+  <rect x="40" y="420" width="390" height="22"/>
+  <g class="sch-mat"><rect x="30" y="318" width="410" height="12"/></g>
+  <g class="sch-plate"><rect x="30" y="330" width="410" height="22"/></g>
+  <g class="sch-knob">
+    <rect x="68" y="352" width="24" height="68"/>
+    <rect x="378" y="352" width="24" height="68"/>
+    <rect x="52" y="446" width="56" height="20"/>
+    <rect x="362" y="446" width="56" height="20"/>
+  </g>
+</svg>
+            <p class="micro tag pin" data-pin="b-plate"><b>Placa de aluminio</b> / Se calienta</p>
+            <p class="micro tag pin" data-pin="b-wheels"><b>Ruedas en V</b> / Mueven la cama (Y)</p>
+            <p class="micro tag pin" data-pin="b-mat"><b>Lámina magnética</b> / Flexible</p>
+            <p class="micro tag pin" data-pin="b-piece"><b>Pieza</b> / Se suelta al doblar</p>
+            <p class="micro tag pin" data-pin="b-knob"><b>Rueda</b> / Sube o baja la esquina</p>
+            <p class="micro tag pin" data-pin="b-spring"><b>Resorte</b> / Empuja la placa</p>
+          <p class="micro loading">Cargando / Modelo</p>
+        </div>
+        <aside class="side side--right">
+          <div class="phase-block" data-phase="0">
+            <dl class="specs-list"><div><dt class="micro">Cama</dt><dd>235 × 235 mm</dd></div><div><dt class="micro">Área útil</dt><dd>220 × 220 mm</dd></div><div><dt class="micro">Temperatura máx.</dt><dd>110 °C</dd></div><div><dt class="micro">Nivelación</dt><dd>Manual, 4 ruedas</dd></div></dl>
+            <p class="micro hint">Elige una fase abajo · La cámara se acerca a cada pieza</p>
+          </div>
+          <div class="phase-block" data-phase="1">
+            <dl class="specs-list"><div><dt class="micro">Placa</dt><dd>Aluminio</dd></div><div><dt class="micro">Calentador</dt><dd>Resistencia 24 V</dd></div><div><dt class="micro">PLA</dt><dd>50–60 °C</dd></div><div><dt class="micro">PETG</dt><dd>70–80 °C</dd></div></dl>
+            <p class="micro hint">No la toques mientras imprime: puede pasar de 100 °C</p>
+          </div>
+          <div class="phase-block" data-phase="2">
+            <dl class="specs-list"><div><dt class="micro">Tipo</dt><dd>Lámina magnética</dd></div><div><dt class="micro">Sujeción</dt><dd>Imán, sin pinzas</dd></div><div><dt class="micro">Limpieza</dt><dd>Alcohol isopropílico</dd></div><div><dt class="micro">Grasa de los dedos</dt><dd>Quita adherencia</dd></div></dl>
+            <p class="micro hint">Espera a que se enfríe antes de retirar la pieza</p>
+          </div>
+          <div class="phase-block" data-phase="3">
+            <p class="micro specs-head">Distancia boquilla–cama<span class="specs-actions"><button type="button" class="alert-btn" data-popup="altura" aria-label="¿Qué pasa si la boquilla está muy cerca o muy lejos?" aria-haspopup="dialog">!</button></span></p>
+            <dl class="specs-list"><div><dt class="micro">Ruedas</dt><dd>4, una por esquina</dd></div><div><dt class="micro">Distancia ideal</dt><dd>≈ 0,1 mm</dd></div><div><dt class="micro">Referencia</dt><dd>Una hoja de papel</dd></div><div><dt class="micro">Cuándo</dt><dd>Al armarla y cada tanto</dd></div></dl>
+            <p class="micro hint">Si la primera capa sale distinta en un lado, esa esquina está desnivelada</p>
+          </div>
+        </aside>
+      </div>
+
+      <nav class="phases" aria-label="Fases del punto">
+        <button type="button" data-step-go="1"><span class="micro">01</span>Cama caliente</button>
+        <button type="button" data-step-go="2"><span class="micro">02</span>Superficie</button>
+        <button type="button" data-step-go="3"><span class="micro">03</span>Ruedas de nivelación</button>
+      </nav>
+    </section>
+
   </main>
 
   <nav class="controls" aria-label="Navegación del curso">
@@ -512,6 +598,69 @@
     </div>
   </dialog>
 
+
+
+  <dialog class="popup popup--wide" id="popup-altura" aria-labelledby="popup-altura-title">
+    <div class="popup-bar">
+      <p class="micro">Info / Nivelación</p>
+      <button type="button" class="popup-close" data-popup-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="popup-body">
+      <h2 id="popup-altura-title">¿Qué tan cerca?</h2>
+      <p>La primera capa no se deja caer sobre la cama: <b>se aplasta</b> contra ella. La distancia entre la boquilla y la cama decide cuánto, y de eso depende que la pieza se pegue.</p>
+      <div class="gap-cases">
+        <figure class="gap-case gap-case--close">
+          <svg class="popup-art gap-art" viewBox="0 0 300 230" role="img" aria-label="Muy cerca: vista lateral de la boquilla sobre la cama y corte de la línea">
+            <text x="14" y="24" class="gap-label">CORTE DE LA LÍNEA</text>
+            <rect x="100" y="66" width="100" height="6" fill="var(--peach-shade)"/>
+            <path d="M108 66 Q 150 56 192 66 Z" fill="var(--paper)"/>
+            <rect x="0" y="88" width="300" height="2" fill="var(--peach-shade)"/>
+            <rect x="0" y="190" width="300" height="40" fill="var(--peach-shade)"/>
+            <path class="gap-bead" d="M40 188.5 L 240 188.5" stroke="var(--paper)" stroke-width="3" stroke-dasharray="7 5" fill="none"/>
+            <g class="gap-nozzle"><rect x="18" y="143" width="44" height="26" fill="var(--peach)"/><path d="M28 169 L52 169 L44 189 L36 189 Z" fill="var(--paper-shade)"/></g>
+          </svg>
+          <figcaption>
+            <p class="micro gap-tag">Muy cerca</p>
+            <p>La boquilla casi toca la cama y el plástico <b>no tiene por dónde salir</b>. Salen líneas finas, cortadas o transparentes, la boquilla raspa la superficie y el extrusor puede saltar (clic, clic).</p>
+          </figcaption>
+        </figure>
+        <figure class="gap-case gap-case--ok">
+          <svg class="popup-art gap-art" viewBox="0 0 300 230" role="img" aria-label="Perfecta: vista lateral de la boquilla sobre la cama y corte de la línea">
+            <text x="14" y="24" class="gap-label">CORTE DE LA LÍNEA</text>
+            <rect x="100" y="66" width="100" height="6" fill="var(--peach-shade)"/>
+            <rect x="128" y="52" width="44" height="14" rx="7" fill="var(--paper)"/>
+            <rect x="0" y="88" width="300" height="2" fill="var(--peach-shade)"/>
+            <rect x="0" y="190" width="300" height="40" fill="var(--peach-shade)"/>
+            <path class="gap-bead" pathLength="100" d="M40 185 L 240 185" stroke="var(--paper)" stroke-width="10" fill="none"/>
+            <g class="gap-nozzle"><rect x="18" y="134" width="44" height="26" fill="var(--peach)"/><path d="M28 160 L52 160 L44 180 L36 180 Z" fill="var(--paper-shade)"/></g>
+          </svg>
+          <figcaption>
+            <p class="micro gap-tag">Perfecta</p>
+            <p>Queda el espacio de <b>una hoja de papel</b>. La línea se aplasta un poco, se pega firme y se une con la de al lado: una primera capa lisa y sin huecos.</p>
+          </figcaption>
+        </figure>
+        <figure class="gap-case gap-case--far">
+          <svg class="popup-art gap-art" viewBox="0 0 300 230" role="img" aria-label="Muy lejos: vista lateral de la boquilla sobre la cama y corte de la línea">
+            <text x="14" y="24" class="gap-label">CORTE DE LA LÍNEA</text>
+            <rect x="100" y="66" width="100" height="6" fill="var(--peach-shade)"/>
+            <circle cx="150" cy="56" r="10" fill="var(--paper)"/>
+            <rect x="0" y="88" width="300" height="2" fill="var(--peach-shade)"/>
+            <rect x="0" y="190" width="300" height="40" fill="var(--peach-shade)"/>
+            <path class="gap-bead" pathLength="100" d="M40 156 C 52 190, 64 168, 78 182 S 104 164, 118 183 S 146 166, 160 182 S 186 164, 200 183 S 226 168, 240 180" stroke="var(--paper)" stroke-width="6" stroke-linecap="round" fill="none"/>
+            <g class="gap-nozzle"><rect x="18" y="110" width="44" height="26" fill="var(--peach)"/><path d="M28 136 L52 136 L44 156 L36 156 Z" fill="var(--paper-shade)"/></g>
+          </svg>
+          <figcaption>
+            <p class="micro gap-tag">Muy lejos</p>
+            <p>El plástico cae como un <b>hilo redondo</b> que apenas toca la cama. No se pega: se arrastra con la boquilla, se levanta en las esquinas o termina en un nido de espagueti.</p>
+          </figcaption>
+        </figure>
+      </div>
+      <div class="popup-callout">
+        <p class="micro">La prueba del papel</p>
+        <p>Con la cama caliente, lleva la boquilla a cada esquina y pasa una hoja de papel por debajo. Gira la rueda hasta que la hoja <b>roce un poco</b> al moverla: ni atrapada, ni suelta. Repite en las cuatro esquinas y una vez más, porque al mover una se corren las otras.</p>
+      </div>
+    </div>
+  </dialog>
 
   <dialog class="popup" id="popup-pasos" aria-labelledby="popup-pasos-title">
     <div class="popup-bar">

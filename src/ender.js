@@ -10,6 +10,7 @@ import { addLights } from './shared.js';
 
 // Color de la sección: el azul claro de «Ender 3 Pro».
 export const ENDER_BLUE = '#7FC8F8';
+export const DIM_COLOR = '#6A4550';
 
 const SCALE = 20;              // el modelo viene en metros: 0,44 m → 8,8 unidades
 const BASE = {                 // maqueta: materiales del modelo → tonos de la paleta
@@ -20,7 +21,7 @@ const BASE = {                 // maqueta: materiales del modelo → tonos de la
   blue: PALETTE.peach,
   '': PALETTE.paperShade,
 };
-const DIM = '#6A4550';         // lo que no se explica en esta fase se apaga
+const DIM = DIM_COLOR;         // lo que no se explica en esta fase se apaga
 
 // Grupos por nombre de nodo (los nombres que deja GLTFLoader). `under` acota la
 // búsqueda a un ancestro, porque «Frame» aparece dos veces.
@@ -51,6 +52,14 @@ const PARTS = {
   extCoupler: { name: '1_27', under: 'Extruder_&_X_Axis_Assembly' }, // racor del tubo bowden
   // Carcasa y ventilador frontal: se quitan para ver el interior del hotend.
   shroud: { names: ['1_15', '1_19', '1_18', '2_6', '3_4', '4_1', '1_20', '2_7', '3_5', '4_2'], under: 'Extruder_Assembly' },
+  // Cama (punto 03). El resorte de cada esquina no viene en el modelo: lo agrega bed.js.
+  bedMount: { name: 'Mounting_Plate', under: 'Bed' },
+  buildPlate: { name: 'Build_Plate', under: 'Bed' },
+  mat: { name: 'Mat', under: 'Bed' },
+  bedWheels: { name: 'Wheels', under: 'Bed' },
+  knobs: { names: ['Knob_1', 'Knob_2', 'Knob_3', 'Knob_4'], under: 'Bed' },
+  knobFront: { name: 'Knob_3', under: 'Bed' },        // esquina frontal derecha
+  bedScrews: { names: ['Screw_4', 'Screw_5', 'Screw_6', 'Screw_7'], under: 'Bed' },
 };
 
 // Puntos de la sección: cada fase dice qué se resalta, qué etiquetas aparecen
@@ -71,6 +80,15 @@ const POINTS = {
       view: { focus: 'heaterBlock', zoom: 0.24, az: 0.4, el: 0.16 } },
     { lit: ['nozzle'], hide: ['shroud'], flows: ['melt'], pins: { 'n-nozzle': 'nozzle' },
       view: { focus: 'nozzle', zoom: 0.12, az: 0.35, el: 0.1 } },
+  ],
+  bed: [
+    { lit: null, pins: {} },
+    { lit: ['buildPlate', 'mat'], fx: 'heat', pins: { 'b-plate': 'buildPlate', 'b-wheels': 'bedWheels' },
+      view: { focus: 'buildPlate', zoom: 0.5, az: 0.55, el: 0.55 } },
+    { lit: ['mat'], fx: 'peel', pins: { 'b-mat': 'matEdge', 'b-piece': 'piece' },
+      view: { focus: 'matLift', zoom: 0.46, az: 0.45, el: 0.32 } },
+    { lit: ['knobs', 'springs', 'bedScrews'], fx: 'level', pins: { 'b-knob': 'knobFront', 'b-spring': 'springFront' },
+      view: { focus: 'knobFront', zoom: 0.26, az: 0.55, el: 0.22 } },
   ],
 };
 const HOME = { zoom: 1, az: 0.6, el: 0.32 };
@@ -173,7 +191,7 @@ export class EnderDemo {
       const missing = Object.keys(PARTS).filter((k) => !this.groups[k].length);
       if (missing.length) console.warn('[ender] piezas no encontradas:', missing.join(', '));
       this.prepareRemovable();
-      if (this.point === 'head') this.buildFlows();
+      this.buildExtras();
       this.ready = true;
       this.phase = -1;
     } catch (err) {
@@ -192,6 +210,10 @@ export class EnderDemo {
   zoomBy(f) {
     this.zoom.tk = Math.max(0.3, Math.min(1.6, this.zoom.tk * f));
   }
+
+  // Piezas y animaciones propias de cada punto (las subclases las reemplazan).
+  buildExtras() { if (this.point === 'head') this.buildFlows(); }
+  animateExtras(dt, tl) { this.animateFlows(dt, tl); }
 
   applyPhase(step) {
     if (step === this.phase || !this.ready) return;
@@ -264,7 +286,7 @@ export class EnderDemo {
     }
     if (this.ready) {
       this.animateRemovable(dt);
-      this.animateFlows(dt, tl);
+      this.animateExtras(dt, tl);
     }
     return { pins, loading: !this.ready && !this.failed };
   }
@@ -393,7 +415,7 @@ EnderDemo.prototype.animateFlows = function animateFlows(dt, time) {
   }
 };
 
-function findNode(root, name) {
+export function findNode(root, name) {
   let hit = null;
   root.traverse((o) => { if (!hit && o.name === name) hit = o; });
   return hit;
