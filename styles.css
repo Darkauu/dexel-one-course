@@ -118,6 +118,11 @@ html:not(.has-3d) #gl { display: none; }
   overflow: hidden;
 }
 .slide.is-current { display: grid; }
+/* Salida de sección (0,45 s): todo menos el título se aleja hacia atrás y se apaga;
+   el título voxel hace lo suyo (vuelve al muro). */
+.slide.is-leaving > :not(.title-zone), .slide.is-leaving .eyebrow { animation: slide-leave 0.45s cubic-bezier(0.5, 0, 0.9, 0.5) forwards; transform-origin: 50% 40%; }
+@keyframes slide-leave { to { transform: scale(0.72); opacity: 0; } }
+html.has-3d .slide.is-leaving .stage svg { visibility: hidden; }
 /* Con el campo vivo, el shader pinta el fondo: la sección suelta su color. */
 html.has-3d .slide { background: transparent; }
 
@@ -574,6 +579,22 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .ams-slot--0 { opacity: 1; }
   .boot, .tag, .controls { transition: none; }
 }
+
+/* ---------- ¿qué es un slicer? (sección 03) ---------- */
+/* Pieza a la izquierda; a la derecha, las 4 fases en vertical. La fase activa se
+   enciende en amarillo JS y muestra su explicación (data-phase). */
+.slicer { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 56px); min-height: 0; }
+.slicer .stage { min-height: 0; }
+.slicer .schematic { width: 70%; }
+.slicer-side { display: grid; align-content: center; gap: clamp(12px, 2vh, 24px); min-height: 0; }
+.slicer-lead { margin: 0; max-width: 46ch; }
+.phases--vertical { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(8px, 1.4vh, 16px); justify-content: stretch; }
+.phases--vertical li { display: grid; gap: 0.5em; }
+.phases--vertical button { width: 100%; justify-content: flex-start; text-align: left; }
+.phases--vertical .body { margin: 0 0 0 1em; padding-left: 1em; border-left: 3px solid var(--js-yellow); max-width: 46ch; }
+.slide--slicer .phases button:hover, .slide--slicer .phases button:focus-visible { border-color: var(--js-yellow); }
+.slide--slicer .phases button.is-active { background: var(--js-yellow); border-color: var(--js-yellow); color: var(--ink); }
+@media (max-width: 760px) { .slicer { grid-template-columns: 1fr; grid-template-rows: 34svh auto; } }
 
 /* ---------- diagrama de acción (sección 03) ---------- */
 /* Siete pasos en fila con flechas de píxeles. Un turno los recorre en orden (1,2 s
