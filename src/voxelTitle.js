@@ -144,6 +144,15 @@ function buildFormation(lines) {
   throw new Error('Título demasiado largo para el presupuesto de cubos');
 }
 
+// Línea «impact» (p. ej. «SOFTWARE»): no se arma cubo a cubo; entra completa desde
+// la cámara, golpea su lugar, sacude el bloque y suelta chispas de soldadura en
+// píxeles. Amarillo JavaScript (no es de la marca: es el color de la sección 03).
+const IMPACT_COLOR = '#F7DF1E';
+const IMPACT_AT = 1.9;       // s desde el inicio del armado hasta que empieza a caer
+const IMPACT_FALL = 0.3;     // s de caída (acelerando) hasta el golpe
+const SPARK_N = 360;
+const SPARK_COLORS = ['#FFFBE6', '#FFF3A8', '#F7DF1E', '#FFC23D'];
+
 // Color final de cada acento de sección (la onda arcoíris termina en él).
 const ACCENTS = { 'ENDER 3 PRO': '#7FC8F8' };
 const accentColorFor = (text) => ACCENTS[text] || '#7FC8F8';
@@ -229,17 +238,34 @@ export class VoxelTitle {
     this.ndc = new THREE.Vector2();
     this.stats = null;
     this.lightDir = new THREE.Vector3(-0.45, 0.55, 1);
+
+    // Chispas del impacto: cubos chicos, opacos, sin girar (se ven como píxeles); al
+    // apagarse se encogen. Mismo recorte que las letras: nunca cruzan el muro.
+    this.sparkMesh = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(0.85, 0.85, 0.85),
+      new THREE.MeshBasicMaterial({ color: '#ffffff', clippingPlanes: [this.clip] }),
+      SPARK_N,
+    );
+    this.sparkMesh.frustumCulled = false;
+    this.sparkMesh.visible = false;
+    const sc = new THREE.Color();
+    for (let i = 0; i < SPARK_N; i++) this.sparkMesh.setColorAt(i, sc.set(SPARK_COLORS[i % SPARK_COLORS.length]));
+    this.group.add(this.sparkMesh);
+    this.sparks = Array.from({ length: SPARK_N }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 0, max: 1 }));
+    this.impact = null;   // { line, box, landed }
+    this.shake = new THREE.Vector3();
+    this.isImpact = new Uint8Array(BUDGET);
   }
 
   // Re-apunta las instancias a una nueva palabra. Mismo texto → nada cambia.
   // Cambio de SECCIÓN: la palabra vuelve al muro y la nueva se arma desde él,
   // igual que la entrada inicial. Mismo título con otros cortes (p. ej. al girar
   // la pantalla): se re-apunta sin salir.
-  setLines(lines, time, { section = null, accent = null } = {}) {
+  setLines(lines, time, { section = null, accent = null, impact = null } = {}) {
     const key = `${section}|${lines.join('|')}`;
     if (key === this.key_) return;
     this.key_ = key;
-    const opts = { lines, accent };
+    const opts = { lines, accent, impact };
     if (this.born >= 0 && section !== this.section) {
       this.section = section;
       this.pending = opts;
@@ -251,7 +277,7 @@ export class VoxelTitle {
     this.build(opts, time, this.born < 0);
   }
 
-  build({ lines, accent }, time, assemble) {
+  build({ lines, accent, impact }, time, assemble) {
     const f = buildFormation(lines);
     const { cols, rows } = f.grid;
     this.size = { w: cols, h: rows };
@@ -265,6 +291,7 @@ export class VoxelTitle {
       for (const c of f.cells) if (f.grid.lineOf[c.r] === accentLine) { aMin = Math.min(aMin, c.q); aMax = Math.max(aMax, c.q); }
     }
     const aMid = (aMin + aMax) / 2;
+    const impactLine = impact ? lines.findIndex((l) => l === impact) : -1;
     // Máscara de vecinos del mismo glifo: +x 1, -x 2, +y 4, -y 8, +z 16, -z 32.
     const same = (q, r, k, g) => q >= 0 && r >= 0 && q < cols && r < rows
       && f.depth[r * cols + q] > k && f.label[r * cols + q] === g;
@@ -293,6 +320,8 @@ export class VoxelTitle {
         this.tscl[i] = 1;
         this.glyph[i] = f.label[c.i];
         this.accD[i] = accentLine >= 0 && f.grid.lineOf[c.r] === accentLine ? Math.abs(c.q + 0.5 - aMid) : -1;
+        this.isImpact[i] = impactLine >= 0 && f.grid.lineOf[c.r] === impactLine ? 1 : 0;
+        if (this.isImpact[i] && (first || i >= this.used)) this.scl[i] = 0; // aún no entra
         this.hide.array[i] = mask(c.q, c.r, k, c.d);
         this.delay[i] = (c.q / cols) * 1.0 + (k / DEPTH) * 0.08 + ((c.r * 7 + c.q * 13) % 11) * 0.012;
         i++;
@@ -314,6 +343,21 @@ export class VoxelTitle {
     // Colores: papel; la línea acento recibe una sola onda arcoíris desde su centro
     // hacia afuera cuando termina de armarse, y queda en el color de la sección.
     for (let n = 0; n < BUDGET; n++) this.mesh.setColorAt(n, this.paper);
+    if (impactLine >= 0) {
+      const yc = new THREE.Color(IMPACT_COLOR);
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let n = 0; n < i; n++) {
+        if (!this.isImpact[n]) continue;
+        this.mesh.setColorAt(n, yc);
+        const j = n * 3;
+        x0 = Math.min(x0, this.tgt[j]); x1 = Math.max(x1, this.tgt[j]);
+        y0 = Math.min(y0, this.tgt[j + 1]); y1 = Math.max(y1, this.tgt[j + 1]);
+      }
+      // Solo hay golpe cuando la palabra se arma desde cero (entrada o cambio de sección).
+      this.impact = first ? { box: { x0, x1, y0, y1 }, start: time + IMPACT_AT, landed: false } : this.impact;
+    } else {
+      this.impact = null;
+    }
     this.mesh.instanceColor.needsUpdate = true;
     this.accent = accentLine >= 0
       ? { color: new THREE.Color(accentColorFor(accent)), max: (aMax - aMin) / 2 + 1, start: (first ? time + 3.0 : time + 0.4), done: false }
@@ -406,6 +450,9 @@ export class VoxelTitle {
       this.push[g] = damp(this.push[g], f * PUSH, f * PUSH > this.push[g] ? 0.12 : 0.4, dt);
     }
     const arr = this.mesh.instanceMatrix.array;
+    // Distancia desde donde cae la línea impact: casi hasta la cámara.
+    const fallZ = Math.max(20, (dist - DEPTH) * 0.7);
+    this.animateImpact(dt, time);
     // Salida hacia el muro (cambio de sección); al terminar entra la palabra nueva.
     const EXIT = 0.8;
     if (this.pending && time - this.exitAt >= EXIT) {
@@ -428,12 +475,25 @@ export class VoxelTitle {
         const k = e <= 0 ? 0 : e >= 1 ? 1 : e * e;
         this.cur[j + 2] = tz + this.push[this.glyph[i]] - k * (tz - (WALL_Z - 30));
         this.scl[i] = 1;
+      } else if (i < used && this.isImpact[i] && this.impact && time < this.impact.start + IMPACT_FALL + 0.45) {
+        // Impact: la línea entera cae desde cerca de la cámara (acelerando), golpea,
+        // se hunde un poco y rebota a su lugar.
+        tz += this.push[this.glyph[i]];
+        const u = (time - this.impact.start) / IMPACT_FALL;
+        this.cur[j] = tx; this.cur[j + 1] = ty;
+        if (u < 0) { this.scl[i] = 0; this.cur[j + 2] = tz + fallZ; }
+        else if (u < 1) { this.scl[i] = 1; this.cur[j + 2] = tz + fallZ * (1 - u) * (1 - u); }
+        else {
+          const v = (time - this.impact.start - IMPACT_FALL) / 0.45;
+          this.scl[i] = 1;
+          this.cur[j + 2] = tz - 1.6 * Math.sin(Math.PI * Math.min(1, v * 2)) * Math.exp(-3 * v);
+        }
       } else if (i < used) {
         // Solo en Z: la retícula XY nunca se rompe.
         tz += this.push[this.glyph[i]];
 
         const a = (age - 0.2 - this.delay[i]) / 2.3;
-        if (a < 1) {
+        if (a < 1 && !(this.isImpact[i] && this.impact)) {
           const e = a <= 0 ? 0 : easeElastic(a);
           this.cur[j] = tx; this.cur[j + 1] = ty;
           this.cur[j + 2] = WALL_Z - 30 + (tz - (WALL_Z - 30)) * e;
@@ -460,5 +520,61 @@ export class VoxelTitle {
     }
     this.mesh.instanceMatrix.needsUpdate = true;
     return clamp01(age / 3.6);
+  }
+
+  // Golpe: sacudida corta del bloque y chispas que saltan desde el contorno de la
+  // línea, caen con gravedad y se apagan encogiéndose.
+  animateImpact(dt, time) {
+    const imp = this.impact;
+    this.shake.set(0, 0, 0);
+    if (imp && !imp.landed && !this.pending && time >= imp.start + IMPACT_FALL) {
+      imp.landed = true;
+      imp.landedAt = time;
+      const b = imp.box;
+      for (let n = 0; n < SPARK_N; n++) {
+        const s = this.sparks[n];
+        // Nacen en el borde de la palabra (más abajo, como al soldar sobre una mesa).
+        const side = Math.random();
+        if (side < 0.55) s.p.set(b.x0 + Math.random() * (b.x1 - b.x0), b.y0 - 0.5, DEPTH);
+        else if (side < 0.7) s.p.set(b.x0 - 0.5, b.y0 + Math.random() * (b.y1 - b.y0), DEPTH);
+        else if (side < 0.85) s.p.set(b.x1 + 0.5, b.y0 + Math.random() * (b.y1 - b.y0), DEPTH);
+        else s.p.set(b.x0 + Math.random() * (b.x1 - b.x0), b.y1 + 0.5, DEPTH);
+        const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
+        const out = new THREE.Vector3(s.p.x - cx, s.p.y - cy, 0).normalize();
+        const sp = 18 + Math.random() * 38;
+        s.v.set(out.x * sp + (Math.random() - 0.5) * 10, Math.abs(out.y) * sp * 0.4 + 6 + Math.random() * 16, 4 + Math.random() * 14);
+        s.life = 0;
+        s.max = 0.45 + Math.random() * 0.75;
+      }
+      this.sparkMesh.visible = true;
+    }
+    if (!imp || !imp.landed) { this.sparkMesh.visible = false; return; }
+    const since = time - imp.landedAt;
+    // Sacudida: decae en ~0,25 s.
+    const amp = 0.9 * Math.exp(-since / 0.09);
+    if (amp > 0.02) {
+      this.shake.set((Math.random() - 0.5) * 2 * amp, (Math.random() - 0.5) * 2 * amp, 0);
+      this.group.position.add(this.shake);
+      this.group.updateMatrixWorld();
+    }
+    let alive = 0;
+    const m = new THREE.Matrix4();
+    for (let n = 0; n < SPARK_N; n++) {
+      const s = this.sparks[n];
+      s.life += dt;
+      const k = 1 - s.life / s.max;
+      if (k <= 0) { m.makeScale(0, 0, 0); this.sparkMesh.setMatrixAt(n, m); continue; }
+      alive++;
+      s.v.y -= 60 * dt;              // gravedad
+      s.v.multiplyScalar(Math.exp(-dt * 1.2));
+      s.p.addScaledVector(s.v, dt);
+      // Posición en la retícula de píxeles (medio cubo): sin movimiento sub-píxel.
+      const q = 0.85;
+      const sc = k < 0.3 ? k / 0.3 : 1;
+      m.makeScale(sc, sc, sc).setPosition(Math.round(s.p.x / q) * q, Math.round(s.p.y / q) * q, s.p.z);
+      this.sparkMesh.setMatrixAt(n, m);
+    }
+    this.sparkMesh.instanceMatrix.needsUpdate = true;
+    this.sparkMesh.visible = alive > 0;
   }
 }

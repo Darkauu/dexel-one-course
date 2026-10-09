@@ -2,6 +2,7 @@
 // Todo el estado visual es función pura de (diapositiva, paso) + tiempo desde que se entró.
 import { damp } from './shared.js';
 import { StepSim } from './stepsim.js';
+import { FLOW_PERIOD, FLOW_STEP } from './flow.js';
 
 const html = document.documentElement;
 const params = new URLSearchParams(location.search);
@@ -248,6 +249,18 @@ function teardownGL(reason) {
   document.querySelectorAll('.tag').forEach((t) => t.classList.remove('is-on'));
 }
 
+// Diagrama de acción: el paso activo (y la flecha que sale de él) con el mismo reloj
+// que usan sus escenas 3D, para que el salto y el resaltado coincidan.
+function syncFlow() {
+  const flow = slides[state.slide].querySelector('.flow');
+  if (!flow) return;
+  const a = reduceMotion ? -1 : Math.floor(((clock.time - state.enteredAt) % FLOW_PERIOD) / FLOW_STEP);
+  if (flow.dataset.active === String(a)) return;
+  flow.dataset.active = String(a);
+  flow.querySelectorAll('.flow-step').forEach((el, i) => el.classList.toggle('is-active', i === a));
+  flow.querySelectorAll('.flow-arrow').forEach((el, i) => el.classList.toggle('is-active', i === a));
+}
+
 function tick(now) {
   requestAnimationFrame(tick);
   let raw = clock.last ? (now - clock.last) / 1000 : 1 / 60;
@@ -267,6 +280,7 @@ function tick(now) {
   controls.classList.toggle('is-idle', clock.time - lastMove > 2.5);
 
   for (const x of sims) if (!x.dialog || x.dialog.open) x.sim.update(dt);
+  syncFlow();
 
   if (!gl || printing) return;
 
@@ -294,6 +308,7 @@ function tick(now) {
     gl.title.setLines(titleLinesFor(slide, zones.title), clock.time, {
       section: slide.dataset.section || null,
       accent: slide.dataset.titleAccent || null,
+      impact: slide.dataset.titleImpact || null,
     });
   }
   const stageEls = [...slide.querySelectorAll('[data-3d]:not([data-3d="title"])')];
