@@ -10,7 +10,10 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 // ---------------------------------------------------------------- deck
 const slides = [...document.querySelectorAll('.slide')];
-const state = { slide: 0, step: 0, enteredAt: 0 };
+const state = { slide: 0, step: 0, enteredAt: 0, leaving: null };
+// Cambio de sección: la diapositiva que sale se queda un instante mientras su texto
+// se aleja (como el título hacia el muro) y sus escenas 3D se encogen.
+const LEAVE = 0.45;
 const pad = (n) => String(n).padStart(2, '0');
 const stepsOf = (el) => Math.max(1, parseInt(el.dataset.steps || '1', 10));
 
@@ -22,11 +25,13 @@ function readHash() {
 }
 
 function render() {
+  const shown = state.leaving ? state.leaving.slide : state.slide;
   slides.forEach((el, i) => {
-    const current = i === state.slide;
+    const current = i === shown;
     el.classList.toggle('is-current', current);
-    el.setAttribute('aria-hidden', current ? 'false' : 'true');
-    if (!current) return;
+    el.classList.toggle('is-leaving', !!state.leaving && i === state.leaving.slide);
+    el.setAttribute('aria-hidden', i === state.slide ? 'false' : 'true');
+    if (!current || state.leaving) return; // la que sale conserva su fase
     el.querySelectorAll('[data-build]').forEach((b) => { b.hidden = parseInt(b.dataset.build, 10) > state.step; });
     // Fases: cada bloque declara en qué pasos se ve; los botones marcan el activo.
     el.dataset.step = String(state.step);
@@ -53,10 +58,14 @@ function render() {
 
 function go(slide, step) {
   const changed = slide !== state.slide;
+  // Una transición en curso termina de golpe si se sigue navegando.
+  if (state.leaving) state.leaving = null;
+  const crossing = changed && slides[slide].dataset.section !== slides[state.slide].dataset.section;
+  if (crossing && !reduceMotion && !printing) state.leaving = { slide: state.slide, step: state.step, enteredAt: state.enteredAt, start: clock.time };
   state.slide = slide;
   state.step = step;
   // Un paso nuevo interrumpe y se asienta de inmediato: nada queda en cola.
-  if (changed) state.enteredAt = clock.time;
+  if (changed) state.enteredAt = clock.time + (state.leaving ? LEAVE : 0);
   render();
 }
 function next() {
@@ -280,6 +289,7 @@ function tick(now) {
   controls.classList.toggle('is-idle', clock.time - lastMove > 2.5);
 
   for (const x of sims) if (!x.dialog || x.dialog.open) x.sim.update(dt);
+  if (state.leaving && clock.time - state.leaving.start >= LEAVE) { state.leaving = null; render(); }
   syncFlow();
 
   if (!gl || printing) return;
@@ -292,9 +302,17 @@ function tick(now) {
   }
 
   // Sincronía por fotograma con chequeo de identidad (no en el evento).
-  const slide = slides[state.slide];
+  // Durante la salida se miden y dibujan las zonas de la diapositiva que sale; el título
+  // ya recibe la palabra nueva (vuelve al muro y se arma, como siempre).
+  const slide = slides[state.leaving ? state.leaving.slide : state.slide];
   const titleZone = slide.querySelector('[data-3d="title"]');
-  const zones = { sinceEnter: clock.time - state.enteredAt, stages: [], step: state.step };
+  const zones = { sinceEnter: Math.max(0, clock.time - state.enteredAt), stages: [], step: state.step };
+  if (state.leaving) {
+    const t = Math.min(1, (clock.time - state.leaving.start) / LEAVE);
+    zones.shrink = 1 - t * t; // se encogen acelerando
+    zones.sinceEnter = clock.time - state.leaving.enteredAt;
+    zones.step = state.leaving.step;
+  }
   // Arrastre del fotograma (en curso o recién terminado) para el escenario giratorio.
   const d = orbit || pending;
   if (d) { zones.drag = { name: d.name, dx: d.dx, dy: d.dy }; d.dx = 0; d.dy = 0; pending = null; }
@@ -305,10 +323,11 @@ function tick(now) {
     const inset = eyebrow ? eyebrow.offsetHeight + 6 : 0;
     zones.title = { x: r.x, y: r.y + inset, w: r.w, h: r.h - inset };
     zones.titleBottom = r.y + r.h;
-    gl.title.setLines(titleLinesFor(slide, zones.title), clock.time, {
-      section: slide.dataset.section || null,
-      accent: slide.dataset.titleAccent || null,
-      impact: slide.dataset.titleImpact || null,
+    const next = slides[state.slide];
+    gl.title.setLines(titleLinesFor(next, zones.title), clock.time, {
+      section: next.dataset.section || null,
+      accent: next.dataset.titleAccent || null,
+      impact: next.dataset.titleImpact || null,
     });
   }
   const stageEls = [...slide.querySelectorAll('[data-3d]:not([data-3d="title"])')];

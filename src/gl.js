@@ -12,6 +12,7 @@ import { EnderDemo, EnderHeadDemo } from './ender.js';
 import { EnderBedDemo } from './bed.js';
 import { EnderElecDemo } from './electronics.js';
 import { FlowPhoto, FlowAI, FlowStl, FlowCura, FlowGcode, FlowSd, FlowPrinter } from './flow.js';
+import { SlicerDemo } from './slicer.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -42,6 +43,7 @@ const SCENES = {
   'flow-gcode': FlowGcode,
   'flow-sd': FlowSd,
   'flow-printer': FlowPrinter,
+  slicer: SlicerDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión
@@ -183,6 +185,13 @@ export class GLLayer {
       // ventana, sin recorte, para que el zoom nunca las corte contra el borde de su
       // contenedor. Su encuadre base se calcula sobre `frame`: del pie del título al
       // pie del escenario, con el ancho del escenario.
+      // Salida de sección: la escena se dibuja en un recuadro que se encoge hacia el
+      // centro de su escenario (la imagen entera se achica, sin tocar la escena).
+      const k = zones.shrink ?? 1;
+      const shrink = (v) => (k >= 1 ? v : {
+        x: rect.x + rect.w / 2 + (v.x - rect.x - rect.w / 2) * k, y: rect.y + rect.h / 2 + (v.y - rect.y - rect.h / 2) * k,
+        w: v.w * k, h: v.h * k,
+      });
       if (Scene.fullFrame) {
         // Cambio de punto (otra escena de la Ender): la nueva arranca desde la cámara
         // de la anterior y vuelve a su propia vista con el mismo amortiguado.
@@ -193,13 +202,13 @@ export class GLLayer {
         const frame = { x: rect.x, y: top, w: rect.w, h: rect.y + rect.h - top };
         const full = { x: 0, y: 0, w: this.size.w, h: this.size.h };
         out[name] = demo.frame(dt, zones.sinceEnter % demo.period, frame, pointer, zones.step, full, rect);
-        this.pass(demo.scene, demo.camera, full);
+        if (k > 0.02) this.pass(demo.scene, demo.camera, shrink(full));
         continue;
       }
       out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer, zones.step);
       // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
       if (demo.prepass) demo.prepass(this.renderer);
-      this.pass(demo.scene, demo.camera, rect);
+      if (k > 0.02) this.pass(demo.scene, demo.camera, shrink(rect));
     }
     if (!titleDone) this.titlePass(dt, time, zones, pointer);
     if (!sawFull) this.lastFull = null; // fuera de la Ender: no hay vista que heredar
