@@ -10,10 +10,16 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 // ---------------------------------------------------------------- deck
 const slides = [...document.querySelectorAll('.slide')];
-const state = { slide: 0, step: 0, enteredAt: 0, leaving: null };
-// Cambio de sección: la diapositiva que sale se queda un instante mientras su texto
-// se aleja (como el título hacia el muro) y sus escenas 3D se encogen.
-const LEAVE = 0.45;
+const state = { slide: 0, step: 0, enteredAt: 0, leaving: null, entering: null };
+// Cambio de sección: la diapositiva que sale se queda un instante; su texto se
+// desvanece en su lugar y sus escenas 3D hacen un «pop» inverso (crecen apenas y se
+// encogen de golpe). Luego las escenas nuevas aparecen con el mismo pop, al revés y a
+// la misma velocidad.
+const LEAVE = 0.26;
+const POP = 0.26;
+// k(t): escala de las escenas en la salida, t de 0 a 1. Un 8 % de impulso y después
+// se cierra acelerando. La entrada usa la misma curva invertida en el tiempo.
+const popOut = (t) => (t < 0.3 ? 1 + 0.08 * Math.sin((t / 0.3) * Math.PI * 0.5) : 1.08 * (1 - ((t - 0.3) / 0.7) ** 2));
 const pad = (n) => String(n).padStart(2, '0');
 const stepsOf = (el) => Math.max(1, parseInt(el.dataset.steps || '1', 10));
 
@@ -59,7 +65,8 @@ function render() {
 function go(slide, step) {
   const changed = slide !== state.slide;
   // Una transición en curso termina de golpe si se sigue navegando.
-  if (state.leaving) state.leaving = null;
+  if (state.leaving) { slides[state.leaving.slide].style.removeProperty('--leave'); state.leaving = null; }
+  state.entering = null;
   const crossing = changed && slides[slide].dataset.section !== slides[state.slide].dataset.section;
   if (crossing && !reduceMotion && !printing) state.leaving = { slide: state.slide, step: state.step, enteredAt: state.enteredAt, start: clock.time };
   state.slide = slide;
@@ -289,7 +296,13 @@ function tick(now) {
   controls.classList.toggle('is-idle', clock.time - lastMove > 2.5);
 
   for (const x of sims) if (!x.dialog || x.dialog.open) x.sim.update(dt);
-  if (state.leaving && clock.time - state.leaving.start >= LEAVE) { state.leaving = null; render(); }
+  // El texto que sale se desvanece con este reloj (corre también sin 3D).
+  if (state.leaving) slides[state.leaving.slide].style.setProperty('--leave', (1 - Math.min(1, (clock.time - state.leaving.start) / LEAVE)) ** 1.5);
+  if (state.leaving && clock.time - state.leaving.start >= LEAVE) {
+    slides[state.leaving.slide].style.removeProperty('--leave');
+    state.leaving = null; state.entering = { start: clock.time }; render();
+  }
+  if (state.entering && clock.time - state.entering.start >= POP) state.entering = null;
   syncFlow();
 
   if (!gl || printing) return;
@@ -309,10 +322,11 @@ function tick(now) {
   const zones = { sinceEnter: Math.max(0, clock.time - state.enteredAt), stages: [], step: state.step };
   if (state.leaving) {
     const t = Math.min(1, (clock.time - state.leaving.start) / LEAVE);
-    zones.shrink = 1 - t * t; // se encogen acelerando
+    zones.shrink = popOut(t);
     zones.sinceEnter = clock.time - state.leaving.enteredAt;
     zones.step = state.leaving.step;
   }
+  if (state.entering) zones.shrink = popOut(1 - Math.min(1, (clock.time - state.entering.start) / POP));
   // Arrastre del fotograma (en curso o recién terminado) para el escenario giratorio.
   const d = orbit || pending;
   if (d) { zones.drag = { name: d.name, dx: d.dx, dy: d.dy }; d.dx = 0; d.dy = 0; pending = null; }
