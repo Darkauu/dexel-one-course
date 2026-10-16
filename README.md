@@ -123,10 +123,13 @@ mueve el reloj único del deck mientras su ventana está abierta.
   arman con vóxeles en una sola malla con solo las caras exteriores (`voxelMesh`), los
   logos son formas extruidas. Un turno recorre los pasos: `main.js` resalta el paso
   activo con el mismo reloj con que su objeto da el salto.
-- `src/slicer.js` — sección 03, punto 02: ¿qué es un slicer? La poción de ejemplo
-  (`src/assets/potion.glb`) sobre una cama virtual; las 4 fases van a la derecha. La
-  poción original (16 MB, con una línea suelta) se reconstruyó en bloques con
-  `tools/potion-voxelize.mjs`: 428 triángulos, 14 KB, sin la línea.
+- `src/slicer.js` — sección 03, punto 02: ¿qué es un slicer? La cama empieza vacía;
+  cada fase arranca su animación al entrar: la poción cae con rebote elástico, un panel
+  3D de opciones flota encima (deslizadores, interruptores y botones), el preview la
+  rehace de abajo hacia arriba una capa de vóxeles por vez y al guardar se achica y
+  entra en un archivo .GCODE. La poción (`src/assets/potion.glb`) y sus capas
+  (`potion-layers.json`) salen del GLB original con `tools/potion-voxelize.mjs`
+  (sin la línea suelta; 14 KB + 7 KB).
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.

@@ -70,11 +70,33 @@ console.log('celdas', NX, NY, NZ, 'llenas', inside.reduce((s, v) => s + v, 0));
 // por la caja del tapón en el original.
 const capBox = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
 for (const t of tris) if (t[9] === 1) for (let k = 0; k < 9; k++) { capBox[k % 3] = Math.min(capBox[k % 3], t[k]); capBox[3 + (k % 3)] = Math.max(capBox[3 + (k % 3)], t[k]); }
+const partOf = (x, y, z) => { const c = [mids[0][x], mids[1][y], mids[2][z]]; return c.every((v, k) => v >= capBox[k] - 0.01 && v <= capBox[3 + k] + 0.01) ? 1 : 0; };
+// 2b) Capas (opcional, 5.º argumento): cada fila de celdas a lo largo de Z (el eje
+//     vertical del modelo) como rectángulos fusionados, para el preview por capas.
+if (process.argv[5]) {
+  const layers = [];
+  for (let z = 0; z < NZ; z++) {
+    const used = new Uint8Array(NX * NY), rects = [];
+    for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
+      if (used[y * NX + x] || !inside[id(x, y, z)]) continue;
+      const part = partOf(x, y, z);
+      const ok = (xx, yy) => xx < NX && yy < NY && !used[yy * NX + xx] && inside[id(xx, yy, z)] && partOf(xx, yy, z) === part;
+      let w = 1; while (ok(x + w, y)) w++;
+      let h = 1; grow: while (y + h < NY) { for (let q = 0; q < w; q++) if (!ok(x + q, y + h)) break grow; h++; }
+      for (let r = 0; r < h; r++) for (let q = 0; q < w; q++) used[(y + r) * NX + x + q] = 1;
+      const r4 = (v) => Math.round(v * 1000) / 1000;
+      rects.push([r4(planes[0][x]), r4(planes[1][y]), r4(planes[0][x + w]), r4(planes[1][y + h]), part]);
+    }
+    if (rects.length) layers.push({ z0: Math.round(planes[2][z] * 1000) / 1000, z1: Math.round(planes[2][z + 1] * 1000) / 1000, rects });
+  }
+  fs.writeFileSync(process.argv[5], JSON.stringify({ unit: U, layers }));
+  console.log('capas', layers.length, 'rectángulos', layers.reduce((s, l) => s + l.rects.length, 0), '→', process.argv[5]);
+}
+
 // 3) Caras exteriores, fusionadas por fila (rectángulos en cada plano).
 const pos = [[], []], idxs = [[], []];
 const quad = (part, a, b, c, d) => { const p = pos[part], n = p.length / 3; p.push(...a, ...b, ...c, ...d); idxs[part].push(n, n + 1, n + 2, n, n + 2, n + 3); };
 const filled = (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < NX && y < NY && z < NZ && inside[id(x, y, z)];
-const partOf = (x, y, z) => { const c = [mids[0][x], mids[1][y], mids[2][z]]; return c.every((v, k) => v >= capBox[k] - 0.01 && v <= capBox[3 + k] + 0.01) ? 1 : 0; };
 const D = [NX, NY, NZ];
 for (let ax = 0; ax < 3; ax++) for (const s of [-1, 1]) {
   const a1 = (ax + 1) % 3, a2 = (ax + 2) % 3;

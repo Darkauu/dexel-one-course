@@ -28,7 +28,7 @@ const FACES = [
   { n: [0, 0, 1], v: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]] },
   { n: [0, 0, -1], v: [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]] },
 ];
-function voxelMesh(cells, unit) {
+export function voxelMesh(cells, unit) {
   const pos = [], nor = [], col = [];
   const c = new THREE.Color();
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
@@ -57,7 +57,7 @@ function voxelMesh(cells, unit) {
 
 // Dibujo de filas (arriba → abajo) a celdas. map: carácter → color; depth: carácter →
 // [desde, hasta) en z (por defecto [0, d)).
-function fromRows(rows, map, d = 2, depth = {}) {
+export function fromRows(rows, map, d = 2, depth = {}) {
   const cells = new Map();
   const H = rows.length;
   rows.forEach((row, r) => [...row].forEach((ch, x) => {
@@ -71,8 +71,9 @@ function fromRows(rows, map, d = 2, depth = {}) {
 const FONT3 = {
   '.': ['   ', '   ', '   ', '   ', ' # '], S: [' ##', '#  ', ' # ', '  #', '## '], T: ['###', ' # ', ' # ', ' # ', ' # '],
   L: ['#  ', '#  ', '#  ', '#  ', '###'], D: ['## ', '# #', '# #', '# #', '## '], G: ['###', '#  ', '# #', '# #', '###'],
+  C: ['###', '#  ', '#  ', '#  ', '###'], O: ['###', '# #', '# #', '# #', '###'], E: ['###', '#  ', '## ', '#  ', '###'],
 };
-function stamp(cells, text, x, yTop, z, color, H) {
+export function stamp(cells, text, x, yTop, z, color, H) {
   for (const ch of text) {
     const g = FONT3[ch];
     const w = ch === '.' ? 1 : 3;
