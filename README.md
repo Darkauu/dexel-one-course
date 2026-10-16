@@ -40,9 +40,11 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
 - `data-section` agrupa los puntos de una sección; el contador de arriba a la
   derecha numera dentro de la sección («01 / 02»). Al cambiar de sección, el título
   voxel vuelve al muro y el nuevo se arma desde él, como en la entrada inicial.
-- Cambio de sección (en ambos sentidos): la diapositiva que sale se queda 0,45 s; su
-  texto se aleja hacia atrás y se apaga, y sus escenas 3D se encogen hacia el centro de
-  su escenario mientras el título vuelve al muro y se arma el nuevo.
+- Cambio de sección (en ambos sentidos): el texto de la diapositiva que sale se
+  desvanece en su lugar y sus escenas 3D hacen un «pop» inverso (0,26 s: crecen un 8 %
+  y se cierran de golpe). Luego las escenas nuevas aparecen con el mismo pop al revés y
+  a la misma velocidad. El pop escala la proyección de cada cámara alrededor del centro
+  de su escenario (`popPass` en `gl.js`), así nada se recorta.
 - `data-title-accent="ENDER 3 PRO"`: esa línea del título recibe una sola onda
   arcoíris desde su centro hacia afuera y queda en el color de la sección.
 - `data-title-impact="SOFTWARE"`: esa línea no se arma cubo a cubo; entra completa

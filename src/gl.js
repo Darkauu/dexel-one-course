@@ -143,6 +143,28 @@ export class GLLayer {
     this.fieldUniforms.uRes.value.copy(buf);
   }
 
+  // view: recuadro donde se dibuja; about: escenario cuyo centro es el del pop. Si la
+  // escena crece (k > 1) y no es a pantalla completa, el recuadro se agranda lo justo.
+  popPass(demo, view, about, k) {
+    if (k === 1) return this.pass(demo.scene, demo.camera, view);
+    let v = view, kk = k;
+    if (k > 1 && view === about) {
+      v = { x: view.x - (view.w * (k - 1)) / 2, y: view.y - (view.h * (k - 1)) / 2, w: view.w * k, h: view.h * k };
+      kk = 1;
+    }
+    const cx = ((about.x + about.w / 2 - v.x) / v.w) * 2 - 1;
+    const cy = 1 - ((about.y + about.h / 2 - v.y) / v.h) * 2;
+    const cam = demo.camera;
+    const saved = cam.projectionMatrix.clone();
+    // En clip: x' = k·x + c·(1 − k)·w → en pantalla, c + (x − c)·k (igual en y).
+    this.popM ??= new THREE.Matrix4();
+    this.popM.set(kk, 0, 0, cx * (1 - kk), 0, kk, 0, cy * (1 - kk), 0, 0, 1, 0, 0, 0, 0, 1);
+    cam.projectionMatrix.premultiply(this.popM);
+    this.pass(demo.scene, cam, v);
+    cam.projectionMatrix.copy(saved);
+    return true;
+  }
+
   pass(scene, camera, view) {
     const H = this.size.h;
     if (view.y + view.h < 0 || view.y > H || view.w < 2 || view.h < 2) return false;
@@ -185,13 +207,10 @@ export class GLLayer {
       // ventana, sin recorte, para que el zoom nunca las corte contra el borde de su
       // contenedor. Su encuadre base se calcula sobre `frame`: del pie del título al
       // pie del escenario, con el ancho del escenario.
-      // Salida de sección: la escena se dibuja en un recuadro que se encoge hacia el
-      // centro de su escenario (la imagen entera se achica, sin tocar la escena).
+      // Pop de cambio de sección: la imagen de la escena se escala k veces alrededor
+      // del centro de su escenario (en la proyección, no en la escena ni en el recuadro:
+      // nada se recorta en bordes rectos).
       const k = zones.shrink ?? 1;
-      const shrink = (v) => (k >= 1 ? v : {
-        x: rect.x + rect.w / 2 + (v.x - rect.x - rect.w / 2) * k, y: rect.y + rect.h / 2 + (v.y - rect.y - rect.h / 2) * k,
-        w: v.w * k, h: v.h * k,
-      });
       if (Scene.fullFrame) {
         // Cambio de punto (otra escena de la Ender): la nueva arranca desde la cámara
         // de la anterior y vuelve a su propia vista con el mismo amortiguado.
@@ -202,13 +221,13 @@ export class GLLayer {
         const frame = { x: rect.x, y: top, w: rect.w, h: rect.y + rect.h - top };
         const full = { x: 0, y: 0, w: this.size.w, h: this.size.h };
         out[name] = demo.frame(dt, zones.sinceEnter % demo.period, frame, pointer, zones.step, full, rect);
-        if (k > 0.02) this.pass(demo.scene, demo.camera, shrink(full));
+        if (k > 0.02) this.popPass(demo, full, rect, k);
         continue;
       }
       out[name] = demo.frame(dt, zones.sinceEnter % demo.period, rect, pointer, zones.step);
       // Pase previo opcional (p. ej. la lupa: la escena vista de cerca, a una textura).
       if (demo.prepass) demo.prepass(this.renderer);
-      if (k > 0.02) this.pass(demo.scene, demo.camera, shrink(rect));
+      if (k > 0.02) this.popPass(demo, rect, rect, k);
     }
     if (!titleDone) this.titlePass(dt, time, zones, pointer);
     if (!sawFull) this.lastFull = null; // fuera de la Ender: no hay vista que heredar
