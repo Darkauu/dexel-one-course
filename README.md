@@ -47,6 +47,11 @@ Imprimir a PDF da una diapositiva por página, en su estado final.
   de su escenario (`popPass` en `gl.js`), así nada se recorta.
 - `data-title-accent="ENDER 3 PRO"`: esa línea del título recibe una sola onda
   arcoíris desde su centro hacia afuera y queda en el color de la sección.
+- `data-title-weave="PARA NO MODELADORES|PARA NO|MODELADORES"`: esas líneas se tejen
+  como una malla: primero los píxeles de los vértices de cada letra (rojo), luego las
+  aristas creciendo desde ellos (papel) y al final el relleno de afuera hacia adentro
+  (menta, color de la sección 04); al terminar todo queda en menta. Se separan varias
+  líneas con `|` (versión apaisada y vertical).
 - `data-title-impact="SOFTWARE"`: esa línea no se arma cubo a cubo; entra completa
   desde la cámara en amarillo JavaScript, golpea su lugar, sacude el bloque y suelta
   chispas de soldadura en píxeles.

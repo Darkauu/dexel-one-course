@@ -49,6 +49,8 @@
   --pin-orange: #FF7A1A;
   /* Sección 03 (software): amarillo JavaScript. Sobre ink 12,6 : 1. */
   --js-yellow: #F7DF1E;
+  /* Sección 04 (conceptos 3D): verde menta. Sobre ink 11,0 : 1. */
+  --mesh-mint: #7EE0B5;
 
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -273,6 +275,9 @@ html:not(.has-3d) .tag--pinned { display: block; opacity: 1; transform: translat
 /* ---------- anatomía: modelo al centro, textos a los lados, fases abajo ---------- */
 .voxel-title .accent { color: var(--ender-blue); }
 html.has-3d .voxel-title .accent { color: transparent; }
+/* Línea «weave» (sección 04): verde menta; en 3D la teje el título voxel. */
+.voxel-title .weave { color: var(--mesh-mint); }
+html.has-3d .voxel-title .weave { color: transparent; }
 /* Línea «impact» (sección 03): amarillo JavaScript; en 3D la dibuja el título voxel. */
 .voxel-title .impact { color: var(--js-yellow); }
 html.has-3d .voxel-title .impact { color: transparent; }
