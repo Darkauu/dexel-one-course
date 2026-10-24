@@ -153,6 +153,68 @@ const IMPACT_FALL = 0.3;     // s de caída (acelerando) hasta el golpe
 const SPARK_N = 360;
 const SPARK_COLORS = ['#FFFBE6', '#FFF3A8', '#F7DF1E', '#FFC23D'];
 
+// Línea «weave» (p. ej. «PARA NO MODELADORES»): se teje como una malla. Primero
+// aparecen los píxeles de los vértices de cada letra (esquinas del contorno), luego
+// las aristas (el resto del contorno, creciendo desde los vértices) y al final el
+// relleno (de afuera hacia adentro). Vértice rojo, arista papel, relleno verde menta;
+// al terminar todo pasa al color de la sección. Menta: color de la sección 04 (no es
+// de la marca), 11,0 : 1 sobre ink.
+const WEAVE_COLOR = '#7EE0B5';
+const WEAVE_AT = 1.0;        // s desde el inicio del armado
+const WEAVE = { vertex: 0.28, edgeStep: 0.022, edgeAt: 0.34, fillStep: 0.05, fillAt: 0.26, pop: 0.12, settle: 0.35 };
+
+// Clasifica cada celda de la línea weave (máscara 2D): 0 vértice, 1 arista, 2 relleno,
+// y su paso de aparición (distancia en celdas desde el frente anterior).
+function weaveCells(f, line) {
+  const { cols, rows, lineOf } = f.grid;
+  const on = (q, r) => q >= 0 && r >= 0 && q < cols && r < rows && lineOf[r] === line && f.depth[r * cols + q] > 0;
+  const kind = new Int8Array(cols * rows).fill(-1), dist = new Int16Array(cols * rows).fill(-1);
+  const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+    if (!on(q, r)) continue;
+    const e = !on(q + 1, r), w = !on(q - 1, r), n = !on(q, r - 1), so = !on(q, r + 1);
+    const boundary = e || w || n || so;
+    // Esquina convexa: borde en dos direcciones perpendiculares. Cóncava: los 4 vecinos
+    // llenos pero falta un diagonal.
+    const convex = (e || w) && (n || so);
+    const concave = !boundary && (!on(q + 1, r + 1) || !on(q - 1, r + 1) || !on(q + 1, r - 1) || !on(q - 1, r - 1));
+    kind[r * cols + q] = convex || concave ? 0 : boundary ? 1 : 2;
+  }
+  // En curvas, cada escalón del pixelado es una esquina: se ralean los vértices (uno
+  // cada 3 celdas como mínimo); los que sobran pasan a ser arista.
+  const keep = [];
+  for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+    const i = r * cols + q;
+    if (kind[i] !== 0) continue;
+    if (keep.some(([kq, kr]) => Math.abs(kq - q) <= 2 && Math.abs(kr - r) <= 2)) { kind[i] = 1; continue; }
+    keep.push([q, r]);
+  }
+  // BFS: aristas desde los vértices (por el contorno); relleno desde el contorno.
+  const bfs = (from, through) => {
+    let front = [];
+    for (let i = 0; i < kind.length; i++) if (from(kind[i])) { dist[i] = 0; front.push(i); }
+    while (front.length) {
+      const nx = [];
+      for (const i of front) {
+        const q = i % cols, r = (i / cols) | 0;
+        for (const [dq, dr] of [...N4, [1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+          const qq = q + dq, rr = r + dr;
+          if (!on(qq, rr)) continue;
+          const j = rr * cols + qq;
+          if (dist[j] >= 0 || !through(kind[j])) continue;
+          dist[j] = dist[i] + 1; nx.push(j);
+        }
+      }
+      front = nx;
+    }
+  };
+  bfs((k) => k === 0, (k) => k === 1);
+  const edgeDist = Int16Array.from(dist);
+  dist.fill(-1);
+  bfs((k) => k === 0 || k === 1, (k) => k === 2);
+  return { kind, step: (i) => (kind[i] === 1 ? edgeDist[i] : kind[i] === 2 ? dist[i] : 0) };
+}
+
 // Color final de cada acento de sección (la onda arcoíris termina en él).
 const ACCENTS = { 'ENDER 3 PRO': '#7FC8F8' };
 const accentColorFor = (text) => ACCENTS[text] || '#7FC8F8';
@@ -255,17 +317,21 @@ export class VoxelTitle {
     this.impact = null;   // { line, box, landed }
     this.shake = new THREE.Vector3();
     this.isImpact = new Uint8Array(BUDGET);
+    this.weaveAt = new Float32Array(BUDGET).fill(-1);  // instante en que aparece (−1: no es weave)
+    this.weaveKind = new Int8Array(BUDGET);
+    this.weave = null;    // { end, done }
+    this.weaveColors3 = [new THREE.Color(PALETTE.accent), new THREE.Color(PALETTE.paper), new THREE.Color(WEAVE_COLOR)];
   }
 
   // Re-apunta las instancias a una nueva palabra. Mismo texto → nada cambia.
   // Cambio de SECCIÓN: la palabra vuelve al muro y la nueva se arma desde él,
   // igual que la entrada inicial. Mismo título con otros cortes (p. ej. al girar
   // la pantalla): se re-apunta sin salir.
-  setLines(lines, time, { section = null, accent = null, impact = null } = {}) {
+  setLines(lines, time, { section = null, accent = null, impact = null, weave = null } = {}) {
     const key = `${section}|${lines.join('|')}`;
     if (key === this.key_) return;
     this.key_ = key;
-    const opts = { lines, accent, impact };
+    const opts = { lines, accent, impact, weave };
     if (this.born >= 0 && section !== this.section) {
       this.section = section;
       this.pending = opts;
@@ -277,7 +343,7 @@ export class VoxelTitle {
     this.build(opts, time, this.born < 0);
   }
 
-  build({ lines, accent, impact }, time, assemble) {
+  build({ lines, accent, impact, weave }, time, assemble) {
     const f = buildFormation(lines);
     const { cols, rows } = f.grid;
     this.size = { w: cols, h: rows };
@@ -292,6 +358,12 @@ export class VoxelTitle {
     }
     const aMid = (aMin + aMax) / 2;
     const impactLine = impact ? lines.findIndex((l) => l === impact) : -1;
+    // weave admite varias líneas («A|B»): cada una se teje por separado.
+    const weaveSet = new Set((weave || '').split('|').filter(Boolean));
+    const weaveInfo = new Map();
+    lines.forEach((l, li) => { if (weaveSet.has(l)) weaveInfo.set(li, weaveCells(f, li)); });
+    const W0 = time + WEAVE_AT;
+    let weaveEnd = 0;
     // Máscara de vecinos del mismo glifo: +x 1, -x 2, +y 4, -y 8, +z 16, -z 32.
     const same = (q, r, k, g) => q >= 0 && r >= 0 && q < cols && r < rows
       && f.depth[r * cols + q] > k && f.label[r * cols + q] === g;
@@ -322,6 +394,21 @@ export class VoxelTitle {
         this.accD[i] = accentLine >= 0 && f.grid.lineOf[c.r] === accentLine ? Math.abs(c.q + 0.5 - aMid) : -1;
         this.isImpact[i] = impactLine >= 0 && f.grid.lineOf[c.r] === impactLine ? 1 : 0;
         if (this.isImpact[i] && (first || i >= this.used)) this.scl[i] = 0; // aún no entra
+        const wv = weaveInfo.get(f.grid.lineOf[c.r]);
+        if (wv && first) {
+          const ci = c.r * cols + c.q, kd = wv.kind[ci], st = wv.step(ci);
+          // Barrido corto de izquierda a derecha encima de cada fase: se ve «tejer».
+          const sweep = (c.q / cols) * 0.18;
+          const at = W0 + sweep + (kd === 0 ? (((c.q * 13 + c.r * 7) % 9) / 9) * WEAVE.vertex
+            : kd === 1 ? WEAVE.vertex + st * WEAVE.edgeStep
+              : WEAVE.vertex + WEAVE.edgeAt + st * WEAVE.fillStep);
+          this.weaveAt[i] = at;
+          this.weaveKind[i] = kd;
+          this.scl[i] = 0;
+          weaveEnd = Math.max(weaveEnd, at + WEAVE.pop);
+        } else {
+          this.weaveAt[i] = -1;
+        }
         this.hide.array[i] = mask(c.q, c.r, k, c.d);
         this.delay[i] = (c.q / cols) * 1.0 + (k / DEPTH) * 0.08 + ((c.r * 7 + c.q * 13) % 11) * 0.012;
         i++;
@@ -334,7 +421,7 @@ export class VoxelTitle {
       this.tscl[n] = 0;
       if (first) { this.cur[j] = 0; this.cur[j + 1] = 0; this.cur[j + 2] = 0; this.scl[n] = 0; }
     }
-    for (let n = i; n < BUDGET; n++) this.hide.array[n] = 0;
+    for (let n = i; n < BUDGET; n++) { this.hide.array[n] = 0; this.weaveAt[n] = -1; }
     this.hide.needsUpdate = true;
     this.used = i;
     this.settleAt = time + (first ? 0.2 + 1.2 + 2.3 : 0.9);
@@ -358,6 +445,14 @@ export class VoxelTitle {
     } else {
       this.impact = null;
     }
+    if (weaveInfo.size && first) {
+      for (let n = 0; n < i; n++) if (this.weaveAt[n] >= 0) this.mesh.setColorAt(n, this.weaveColors3[this.weaveKind[n]]);
+      this.weave = { end: weaveEnd, done: false };
+      // La malla queda armada antes de colapsar caras interiores.
+      this.settleAt = Math.max(this.settleAt, weaveEnd + WEAVE.settle + 0.05);
+    } else if (!weaveInfo.size) {
+      this.weave = null;
+    }
     this.mesh.instanceColor.needsUpdate = true;
     this.accent = accentLine >= 0
       ? { color: new THREE.Color(accentColorFor(accent)), max: (aMax - aMin) / 2 + 1, start: (first ? time + 3.0 : time + 0.4), done: false }
@@ -371,6 +466,20 @@ export class VoxelTitle {
     sc.updateProjectionMatrix();
     this.lightDir = new THREE.Vector3(-0.45, 0.55, 1).multiplyScalar(s * 1.6);
     this.wall.scale.set(cols * 3, rows * 5, 1);
+  }
+
+  // Al terminar de tejer, vértices y aristas pasan al color de la línea (menta).
+  weaveSettle(time) {
+    const w = this.weave;
+    if (!w || w.done || time < w.end) return;
+    const k = Math.min(1, (time - w.end) / WEAVE.settle);
+    const c = this.tmpC, fin = this.weaveColors3[2];
+    for (let i = 0; i < this.used; i++) {
+      if (this.weaveAt[i] < 0 || this.weaveKind[i] === 2) continue;
+      this.mesh.setColorAt(i, c.copy(this.weaveColors3[this.weaveKind[i]]).lerp(fin, k));
+    }
+    this.mesh.instanceColor.needsUpdate = true;
+    if (k >= 1) w.done = true;
   }
 
   // Onda arcoíris: un solo frente que sale del centro de la línea acento; detrás
@@ -461,6 +570,7 @@ export class VoxelTitle {
       this.build(next, time, true);
     }
     this.waveColors(time);
+    this.weaveSettle(time);
     const age = this.born < 0 ? 0 : time - this.born;
     this.settled.value = time >= this.settleAt ? 1 : 0;
     const used = this.used;
@@ -488,12 +598,18 @@ export class VoxelTitle {
           this.scl[i] = 1;
           this.cur[j + 2] = tz - 1.6 * Math.sin(Math.PI * Math.min(1, v * 2)) * Math.exp(-3 * v);
         }
+      } else if (i < used && this.weaveAt[i] >= 0 && this.weave && !this.weave.done) {
+        // Weave: el píxel aparece en su lugar con un pop corto (crece y se pasa apenas).
+        tz += this.push[this.glyph[i]];
+        const u = (time - this.weaveAt[i]) / WEAVE.pop;
+        this.cur[j] = tx; this.cur[j + 1] = ty; this.cur[j + 2] = tz;
+        this.scl[i] = u <= 0 ? 0 : u >= 1 ? 1 : Math.sin(u * Math.PI * 0.5) * 1.25 - 0.25 * u * u;
       } else if (i < used) {
         // Solo en Z: la retícula XY nunca se rompe.
         tz += this.push[this.glyph[i]];
 
         const a = (age - 0.2 - this.delay[i]) / 2.3;
-        if (a < 1 && !(this.isImpact[i] && this.impact)) {
+        if (a < 1 && !(this.isImpact[i] && this.impact) && this.weaveAt[i] < 0) {
           const e = a <= 0 ? 0 : easeElastic(a);
           this.cur[j] = tx; this.cur[j + 1] = ty;
           this.cur[j + 2] = WALL_Z - 30 + (tz - (WALL_Z - 30)) * e;

@@ -342,6 +342,7 @@ function tick(now) {
       section: next.dataset.section || null,
       accent: next.dataset.titleAccent || null,
       impact: next.dataset.titleImpact || null,
+      weave: next.dataset.titleWeave || null,
     });
   }
   const stageEls = [...slide.querySelectorAll('[data-3d]:not([data-3d="title"])')];
