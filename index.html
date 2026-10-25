@@ -796,10 +796,10 @@
       </div>
     </section>
 
-    <section class="slide slide--concepts" id="s12" data-section="04"
+    <section class="slide slide--anatomy slide--concepts" id="s12" data-section="04"
              data-title-lines="CONCEPTOS 3D|PARA NO MODELADORES||CONCEPTOS 3D|PARA NO|MODELADORES"
              data-title-weave="PARA NO MODELADORES|PARA NO|MODELADORES"
-             data-steps="1">
+             data-steps="4">
 
       <div class="title-zone" data-3d="title">
         <p class="micro eyebrow">Sección 04 / Conceptos 3D <span class="counter" data-counter>01 / 01</span></p>
@@ -808,8 +808,60 @@
 
       <h2 class="subtitle">
         <span class="micro">Punto 01</span>
-        Vértices, aristas y polígonos
+        Vértices, aristas, caras y mallas
       </h2>
+
+      <div class="anatomy">
+        <aside class="side side--left">
+          <dl class="specs-list mesh-counts">
+            <div class="mesh-count" data-count="0"><dt class="micro">Vértices</dt><dd>12</dd></div>
+            <div class="mesh-count" data-count="1"><dt class="micro">Aristas</dt><dd>18</dd></div>
+            <div class="mesh-count" data-count="2"><dt class="micro">Caras</dt><dd>8</dd></div>
+            <div class="mesh-count" data-count="3"><dt class="micro">Triángulos</dt><dd>20</dd></div>
+          </dl>
+        </aside>
+        <div class="stage" data-3d="mesh" aria-label="Prisma hexagonal que se construye por fases: vértices, aristas, caras y malla">
+          <svg class="schematic mesh-sch" viewBox="0 0 200 200" role="img" aria-label="Prisma hexagonal">
+  <g class="sch-f"><polygon points="40,70 70,52 130,52 160,70 130,88 70,88"/><polygon points="40,70 70,88 70,148 40,130"/><polygon points="70,88 130,88 130,148 70,148"/><polygon points="130,88 160,70 160,130 130,148"/></g>
+  <g class="sch-m"><line x1="40" y1="70" x2="70" y2="148"/><line x1="70" y1="88" x2="130" y2="148"/><line x1="130" y1="88" x2="160" y2="130"/><line x1="70" y1="52" x2="130" y2="88"/><line x1="70" y1="52" x2="70" y2="88"/><line x1="70" y1="52" x2="160" y2="70"/></g>
+  <g class="sch-e"><polyline points="40,70 70,52 130,52 160,70 130,88 70,88 40,70"/><polyline points="40,70 40,130 70,148 130,148 160,130 160,70"/><line x1="70" y1="88" x2="70" y2="148"/><line x1="130" y1="88" x2="130" y2="148"/></g>
+  <g class="sch-v"><rect x="36" y="66" width="8" height="8"/><rect x="66" y="48" width="8" height="8"/><rect x="126" y="48" width="8" height="8"/><rect x="156" y="66" width="8" height="8"/><rect x="126" y="84" width="8" height="8"/><rect x="66" y="84" width="8" height="8"/><rect x="36" y="126" width="8" height="8"/><rect x="66" y="144" width="8" height="8"/><rect x="126" y="144" width="8" height="8"/><rect x="156" y="126" width="8" height="8"/><rect class="sch-back" x="66" y="108" width="8" height="8"/><rect class="sch-back" x="126" y="108" width="8" height="8"/></g>
+</svg>
+        </div>
+        <aside class="side side--right">
+          <div class="phase-block" data-phase="0">
+            <p class="micro">Fase 01</p>
+            <h3>Vértices</h3>
+            <p class="body">Un objeto 3D, para la computadora, empieza como una lista de <b>puntos en el espacio</b>: los <b>vértices</b>. Cada uno es solo una posición (x, y, z), sin forma ni grosor.</p>
+            <p class="micro hint">Este hexágono tiene 12: seis abajo y seis arriba.</p>
+          </div>
+          <div class="phase-block" data-phase="1">
+            <p class="micro">Fase 02</p>
+            <h3>Aristas</h3>
+            <p class="body">Una <b>arista</b> es la línea recta que une <b>dos vértices</b>. Juntas dibujan el contorno de la pieza, como un esqueleto de alambre.</p>
+            <p class="micro hint">18 aristas: seis en cada tapa y seis verticales.</p>
+          </div>
+          <div class="phase-block" data-phase="2">
+            <p class="micro">Fase 03</p>
+            <h3>Caras</h3>
+            <p class="body">Una <b>cara</b> es la superficie que encierran tres o más aristas. Es lo que se ve, y lo que la impresora llena de plástico.</p>
+            <p class="micro hint">8 caras: seis laterales y dos tapas hexagonales.</p>
+          </div>
+          <div class="phase-block" data-phase="3">
+            <p class="micro">Fase 04</p>
+            <h3>Malla</h3>
+            <p class="body">Todas las caras juntas forman la <b>malla</b>. Para guardarla en un <b>STL</b>, cada cara se divide en <b>triángulos</b>: así es como el slicer ve la pieza.</p>
+            <p class="micro hint">20 triángulos: dos por lado y cuatro por tapa.</p>
+          </div>
+        </aside>
+      </div>
+
+      <nav class="phases" aria-label="Fases del punto">
+        <button type="button" data-step-go="0"><span class="micro">01</span>Vértices</button>
+        <button type="button" data-step-go="1"><span class="micro">02</span>Aristas</button>
+        <button type="button" data-step-go="2"><span class="micro">03</span>Caras</button>
+        <button type="button" data-step-go="3"><span class="micro">04</span>Malla</button>
+      </nav>
     </section>
 
   </main>

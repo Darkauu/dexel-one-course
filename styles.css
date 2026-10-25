@@ -585,6 +585,34 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .boot, .tag, .controls { transition: none; }
 }
 
+/* ---------- vértices, aristas, caras y mallas (sección 04) ---------- */
+/* Mismo armado que la anatomía de la Ender, en menta. A la izquierda, cuántos hay de
+   cada elemento; el de la fase actual se enciende. */
+.slide--concepts .phases button:hover, .slide--concepts .phases button:focus-visible { border-color: var(--mesh-mint); }
+.slide--concepts .phases button.is-active { background: var(--mesh-mint); border-color: var(--mesh-mint); color: var(--ink); }
+.slide--concepts .phase-block h3 { color: var(--mesh-mint); }
+.mesh-counts dd { font-size: clamp(22px, min(2.4vw, 4.2vh), 48px); font-variant-numeric: tabular-nums; transition: color 0.25s; }
+.mesh-counts div { transition: border-color 0.25s; }
+.slide--concepts[data-step="0"] [data-count="0"] dd, .slide--concepts[data-step="1"] [data-count="1"] dd,
+.slide--concepts[data-step="2"] [data-count="2"] dd, .slide--concepts[data-step="3"] [data-count="3"] dd { color: var(--mesh-mint); }
+.slide--concepts[data-step="0"] [data-count="0"], .slide--concepts[data-step="1"] [data-count="1"],
+.slide--concepts[data-step="2"] [data-count="2"], .slide--concepts[data-step="3"] [data-count="3"] { border-top-color: var(--mesh-mint); }
+/* Esquema sin WebGL: lo de la fase actual en menta, lo que aún no existe no se ve. */
+.mesh-sch { width: 70%; }
+.slide--concepts .mesh-sch .sch-v rect { fill: var(--paper); }
+.slide--concepts .mesh-sch .sch-e polyline, .slide--concepts .mesh-sch .sch-e line { fill: none; stroke: var(--paper-shade); stroke-width: 3; }
+.slide--concepts .mesh-sch .sch-f polygon { fill: var(--peach); stroke: none; }
+.slide--concepts .mesh-sch .sch-m line { stroke: var(--ink-deep); stroke-width: 1.5; }
+.slide--concepts[data-step="0"] .mesh-sch :is(.sch-e, .sch-f, .sch-m),
+.slide--concepts[data-step="1"] .mesh-sch :is(.sch-f, .sch-m),
+.slide--concepts[data-step="2"] .mesh-sch .sch-m { display: none; }
+.slide--concepts[data-step="0"] .mesh-sch .sch-v rect { fill: var(--mesh-mint); }
+/* Los dos vértices de atrás quedan detrás de las caras cuando existen. */
+.slide--concepts:is([data-step="2"], [data-step="3"]) .mesh-sch .sch-back { display: none; }
+.slide--concepts[data-step="1"] .mesh-sch .sch-e :is(polyline, line) { stroke: var(--mesh-mint); }
+.slide--concepts[data-step="2"] .mesh-sch .sch-f polygon { fill: var(--mesh-mint); }
+.slide--concepts[data-step="3"] .mesh-sch .sch-m line { stroke: var(--mesh-mint); }
+
 /* ---------- ¿qué es un slicer? (sección 03) ---------- */
 /* Pieza a la izquierda; a la derecha, las 4 fases en vertical. La fase activa se
    enciende en amarillo JS y muestra su explicación (data-phase). */
