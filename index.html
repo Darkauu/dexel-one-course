@@ -864,6 +864,50 @@
       </nav>
     </section>
 
+    <section class="slide slide--concepts" id="s13" data-section="04"
+             data-title-lines="CONCEPTOS 3D|PARA NO MODELADORES||CONCEPTOS 3D|PARA NO|MODELADORES"
+             data-title-weave="PARA NO MODELADORES|PARA NO|MODELADORES"
+             data-steps="1">
+
+      <div class="title-zone" data-3d="title">
+        <p class="micro eyebrow">Sección 04 / Conceptos 3D <span class="counter" data-counter>02 / 02</span></p>
+        <h1 class="voxel-title"><span class="line">Conceptos 3D</span> <span class="line weave">para no modeladores</span></h1>
+      </div>
+
+      <h2 class="subtitle">
+        <span class="micro">Punto 02</span>
+        Polígonos o caras
+      </h2>
+
+      <div class="poly">
+        <figure class="poly-col">
+          <div class="stage" data-3d="poly-model" aria-label="Peón de ejemplo; se ve más liso con más caras y más facetado con menos">
+            <svg class="schematic poly-sch" viewBox="0 0 100 100" role="img" aria-label="Contorno del modelo con tantos lados como su detalle"><polygon data-poly-shape points=""/></svg>
+          </div>
+          <figcaption>
+            <p class="micro">Detalle</p>
+            <p class="poly-figure"><b data-poly-faces>0</b> caras</p>
+            <p class="body">Más caras: curvas más suaves y más detalle. Menos caras: la pieza se ve hecha de planos.</p>
+          </figcaption>
+        </figure>
+        <figure class="poly-col">
+          <div class="stage" data-3d="poly-bytes" aria-label="Peso del archivo">
+            <p class="poly-bytes-fallback" data-poly-bytes data-level="0">0 B</p>
+          </div>
+          <figcaption>
+            <p class="micro">Peso del archivo · STL binario · <span class="poly-level" data-poly-level data-level="0">bajo</span></p>
+            <p class="poly-figure"><b data-poly-exact>0 bytes</b></p>
+            <p class="body">Cada triángulo ocupa <b>50 bytes</b>. Duplicar las caras duplica el archivo: más lento de abrir, de laminar y de compartir, aunque la impresora no note la diferencia.</p>
+          </figcaption>
+        </figure>
+        <label class="poly-slider">
+          <span class="micro">Menos caras</span>
+          <input type="range" min="0" max="100" value="35" step="1" data-ui="polyDetail" aria-label="Cantidad de caras del modelo">
+          <span class="micro">Más caras</span>
+        </label>
+      </div>
+    </section>
+
   </main>
 
   <nav class="controls" aria-label="Navegación del curso">

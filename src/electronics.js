@@ -20,7 +20,7 @@ const LCD = { w: 128, h: 64, cell: 4, bg: '#2C5BE0', off: '#3463E6', on: '#EEF3F
 const OUT_W = LCD.w * LCD.cell, OUT_H = LCD.h * LCD.cell;
 
 // Fuente de 5 × 7 puntos (solo los caracteres que usa la pantalla).
-const FONT = Object.fromEntries(Object.entries({
+export const FONT = Object.fromEntries(Object.entries({
   '0': ' ### |#   #|#  ##|# # #|##  #|#   #| ### ', '1': '  #  | ##  |  #  |  #  |  #  |  #  | ### ',
   '2': ' ### |#   #|    #|   # |  #  | #   |#####', '3': '#####|   # |  #  |   # |    #|#   #| ### ',
   '4': '   # |  ## | # # |#  # |#####|   # |   # ', '5': '#####|#    |#### |    #|    #|#   #| ### ',

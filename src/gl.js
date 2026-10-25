@@ -14,6 +14,7 @@ import { EnderElecDemo } from './electronics.js';
 import { FlowPhoto, FlowAI, FlowStl, FlowCura, FlowGcode, FlowSd, FlowPrinter } from './flow.js';
 import { SlicerDemo } from './slicer.js';
 import { MeshDemo } from './mesh.js';
+import { PolyModelDemo, PolyBytesDemo } from './poly.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -46,6 +47,8 @@ const SCENES = {
   'flow-printer': FlowPrinter,
   slicer: SlicerDemo,
   mesh: MeshDemo,
+  'poly-model': PolyModelDemo,
+  'poly-bytes': PolyBytesDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión

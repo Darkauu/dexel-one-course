@@ -585,6 +585,30 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .boot, .tag, .controls { transition: none; }
 }
 
+/* ---------- polígonos o caras (sección 04) ---------- */
+/* Modelo a la izquierda, peso a la derecha, la barra abajo a todo el ancho. Los colores
+   del peso son de semáforo (no de la marca), todos legibles sobre ink:
+   verde 8,9 : 1 · amarillo 12,9 : 1 · naranja 7,4 : 1. El rojo de la marca (4,4 : 1)
+   solo va en el número grande; la etiqueta chica usa un rojo más claro (5,8 : 1). */
+.poly { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto; column-gap: clamp(16px, 3vw, 64px); row-gap: clamp(10px, 1.8vh, 22px); min-height: 0; }
+.poly-col { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; min-height: 0; }
+.poly-col figcaption { display: grid; gap: 4px; border-top: 2px solid var(--peach-shade); padding-top: 0.6em; }
+.poly-col .body { margin: 0; max-width: 52ch; }
+.poly-figure { margin: 0; font-size: clamp(18px, min(1.7vw, 3vh), 34px); }
+.poly-figure b { font-variant-numeric: tabular-nums; }
+.poly-level { font-weight: 800; }
+.poly-level[data-level="0"], .poly-bytes-fallback[data-level="0"] { color: #5FD068; }
+.poly-level[data-level="1"], .poly-bytes-fallback[data-level="1"] { color: var(--js-yellow); }
+.poly-level[data-level="2"], .poly-bytes-fallback[data-level="2"] { color: var(--alert-orange); }
+.poly-level[data-level="3"] { color: #FF5C5C; }
+.poly-bytes-fallback[data-level="3"] { color: var(--accent); }
+.poly-bytes-fallback { margin: 0; font-family: var(--f-mono); font-weight: 800; font-size: clamp(40px, 7vw, 120px); font-variant-numeric: tabular-nums; }
+html.has-3d .poly-bytes-fallback { visibility: hidden; }
+.poly-sch { width: 60%; }
+.poly-sch polygon { fill: var(--paper); }
+.poly-slider { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; }
+.poly-slider input { flex: 1; accent-color: var(--mesh-mint); height: 28px; }
+
 /* ---------- vértices, aristas, caras y mallas (sección 04) ---------- */
 /* Mismo armado que la anatomía de la Ender, en menta. A la izquierda, cuántos hay de
    cada elemento; el de la fase actual se enciende. */

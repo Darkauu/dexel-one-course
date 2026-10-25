@@ -141,6 +141,10 @@ mueve el reloj único del deck mientras su ventana está abierta.
   hexagonal en el centro que se construye por fases (12 vértices, 18 aristas, 8 caras y
   la malla de 20 triángulos del STL); lo de la fase actual brilla en menta y en la
   fase de malla la pieza gira.
+- `src/poly.js` — sección 04, punto 02: polígonos o caras. Una barra (`data-ui` →
+  `ui.polyDetail`) fija las caras de un peón de referencia (24 a 300 000, en escala
+  logarítmica) y su peso como STL binario (84 + 50 bytes por triángulo), que se muestra
+  como un número sólido de píxeles: verde, amarillo, naranja o rojo según el tamaño.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
