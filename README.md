@@ -137,6 +137,10 @@ mueve el reloj único del deck mientras su ventana está abierta.
   entra en un archivo .GCODE. La poción (`src/assets/potion.glb`) y sus capas
   (`potion-layers.json`) salen del GLB original con `tools/potion-voxelize.mjs`
   (sin la línea suelta; 14 KB + 7 KB).
+- `src/mesh.js` — sección 04, punto 01: vértices, aristas, caras y mallas. Un prisma
+  hexagonal en el centro que se construye por fases (12 vértices, 18 aristas, 8 caras y
+  la malla de 20 triángulos del STL); lo de la fase actual brilla en menta y en la
+  fase de malla la pieza gira.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
