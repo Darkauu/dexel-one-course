@@ -3,6 +3,7 @@
 import { damp } from './shared.js';
 import { StepSim } from './stepsim.js';
 import { FLOW_PERIOD, FLOW_STEP } from './flow.js';
+import { ui, polyDetail, formatBytes, formatFaces, levelOf, LEVELS } from './poly.js';
 
 const html = document.documentElement;
 const params = new URLSearchParams(location.search);
@@ -203,12 +204,32 @@ function onInput(e) {
     case 'input': {
       const speed = e.target.closest?.('[data-sim-speed]');
       if (speed) simFor(speed)?.setSpeed(+speed.value);
+      const ctl = e.target.closest?.('[data-ui]');
+      if (ctl) { ui[ctl.dataset.ui] = +ctl.value; syncPoly(); }
       return;
     }
     case 'hashchange':
       readHash(); state.enteredAt = clock.time; render();
   }
 }
+// Polígonos o caras: textos de la barra de detalle (caras, peso y nivel) y el esquema
+// sin WebGL (un polígono con tantos lados como el modelo, hasta 64). Las escenas 3D
+// leen el mismo valor (ui.polyDetail).
+function syncPoly() {
+  const { n, faces, bytes } = polyDetail(ui.polyDetail);
+  const lvl = levelOf(bytes);
+  document.querySelectorAll('[data-poly-faces]').forEach((el) => { el.textContent = formatFaces(faces); });
+  document.querySelectorAll('[data-poly-bytes]').forEach((el) => { el.textContent = formatBytes(bytes); el.dataset.level = String(lvl); });
+  document.querySelectorAll('[data-poly-exact]').forEach((el) => { el.textContent = `${formatFaces(bytes)} bytes`; });
+  document.querySelectorAll('[data-poly-level]').forEach((el) => { el.textContent = LEVELS[lvl].name; el.dataset.level = String(lvl); });
+  document.querySelectorAll('[data-poly-shape]').forEach((el) => {
+    const k = Math.min(64, n);
+    el.setAttribute('points', Array.from({ length: k }, (_, i) => { const a = (i / k) * Math.PI * 2 - Math.PI / 2; return `${(50 + 40 * Math.cos(a)).toFixed(1)},${(50 + 40 * Math.sin(a)).toFixed(1)}`; }).join(' '));
+  });
+}
+document.querySelectorAll('[data-ui]').forEach((el) => { ui[el.dataset.ui] = +el.value; });
+syncPoly();
+
 // Simulaciones (p. ej. el motor paso a paso): las mueve este mismo reloj.
 const sims = [...document.querySelectorAll('[data-stepsim]')].map((el) => ({ el, dialog: el.closest('dialog'), sim: new StepSim(el) }));
 const simFor = (node) => sims.find((x) => x.el.contains(node))?.sim;
