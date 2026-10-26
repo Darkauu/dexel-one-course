@@ -585,6 +585,24 @@ html:not(.is-ready) .deck { visibility: hidden; }
   .boot, .tag, .controls { transition: none; }
 }
 
+/* ---------- triángulos vs. cuadriláteros (sección 04) ---------- */
+/* Información a los lados, cada una junto a su objeto: A | puesto | NPC | B. */
+.topo { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 0.9fr); column-gap: clamp(12px, 2vw, 40px); min-height: 0; }
+.topo-info { align-self: center; display: grid; gap: 0.6em; }
+.topo-info h3 { margin: 0; font-weight: 900; text-transform: uppercase; font-size: clamp(20px, min(2vw, 3.6vh), 40px); line-height: 1; color: var(--mesh-mint); }
+.topo-info .body { margin: 0; }
+.topo-info .hint { color: var(--peach-shade); }
+.topo .stage { min-height: 0; }
+.topo-sch { width: 90%; }
+.topo-tag { position: absolute; left: 50%; top: 2%; transform: translateX(-50%); opacity: 1; }
+html:not(.has-3d) .topo-tag { transform: translateX(-50%); }
+@media (max-width: 760px) {
+  .topo { grid-template-columns: 1fr 1fr; row-gap: 12px; overflow: auto; }
+  .topo .stage { height: 30svh; }
+  .topo > :nth-child(1) { grid-column: 1; grid-row: 2; } .topo > :nth-child(2) { grid-column: 1; grid-row: 1; }
+  .topo > :nth-child(3) { grid-column: 2; grid-row: 1; } .topo > :nth-child(4) { grid-column: 2; grid-row: 2; }
+}
+
 /* ---------- polígonos o caras (sección 04) ---------- */
 /* Modelo a la izquierda, peso a la derecha, la barra abajo a todo el ancho. Los colores
    del peso son de semáforo (no de la marca), todos legibles sobre ink:

@@ -15,6 +15,7 @@ import { FlowPhoto, FlowAI, FlowStl, FlowCura, FlowGcode, FlowSd, FlowPrinter } 
 import { SlicerDemo } from './slicer.js';
 import { MeshDemo } from './mesh.js';
 import { PolyModelDemo, PolyBytesDemo } from './poly.js';
+import { TopoTriDemo, TopoQuadDemo } from './topo.js';
 
 // Escenas disponibles: el nombre es el valor de data-3d en el HTML.
 // Cada una se construye la primera vez que una diapositiva la pide.
@@ -49,6 +50,8 @@ const SCENES = {
   mesh: MeshDemo,
   'poly-model': PolyModelDemo,
   'poly-bytes': PolyBytesDemo,
+  'topo-tri': TopoTriDemo,
+  'topo-quad': TopoQuadDemo,
 };
 
 // El shader escribe directo al framebuffer: los colores van SIN conversión
