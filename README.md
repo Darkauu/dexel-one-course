@@ -149,6 +149,9 @@ mueve el reloj único del deck mientras su ventana está abierta.
   frutas quieto (asset de fondo, triangulado) y un NPC que camina en loop (malla de
   cuadriláteros; codos y rodillas se doblan deformando la malla). Las líneas de la
   malla las pinta el sombreador sobre cada cara (`wireMat`): todo es opaco.
+- `src/texgeo.js` — sección 04, punto 04: textura vs. geometría. El mismo cofre (misma
+  geometría) con su textura de píxeles y como sale impreso: gris del filamento con
+  líneas de capa. Lo dibujado desaparece; la forma queda.
 - Escenas nuevas: una clase que extiende `Stage` con `frame(dt, t, view, pointer)`,
   registrada en `SCENES` (`src/gl.js`) y usada en el HTML con
   `<div class="stage" data-3d="nombre">`.
