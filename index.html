@@ -908,6 +908,47 @@
       </div>
     </section>
 
+    <section class="slide slide--concepts" id="s14" data-section="04"
+             data-title-lines="CONCEPTOS 3D|PARA NO MODELADORES||CONCEPTOS 3D|PARA NO|MODELADORES"
+             data-title-weave="PARA NO MODELADORES|PARA NO|MODELADORES"
+             data-steps="1">
+
+      <div class="title-zone" data-3d="title">
+        <p class="micro eyebrow">Sección 04 / Conceptos 3D <span class="counter" data-counter>03 / 03</span></p>
+        <h1 class="voxel-title"><span class="line">Conceptos 3D</span> <span class="line weave">para no modeladores</span></h1>
+      </div>
+
+      <h2 class="subtitle">
+        <span class="micro">Punto 03</span>
+        Triángulos <em>vs.</em> cuadriláteros
+      </h2>
+
+      <div class="topo">
+        <div class="topo-info">
+          <p class="micro index">A / Triángulos</p>
+          <h3>Asset estático</h3>
+          <p class="body">Un triángulo es la cara más simple y <b>siempre es plana</b>. Para un objeto que <b>nunca se mueve</b>, como este puesto de frutas al fondo de un juego, da igual cómo esté dividido: se ve bien y pesa poco.</p>
+          <dl class="specs-list"><div><dt class="micro">Lados</dt><dd>3</dd></div><div><dt class="micro">Se mueve</dt><dd>No</dd></div><div><dt class="micro">Ideal para</dt><dd>Fondos, props y STL</dd></div></dl>
+          <p class="micro hint">El STL solo guarda triángulos: al imprimir, todo termina así</p>
+        </div>
+        <div class="stage" data-3d="topo-tri" aria-label="Puesto de frutas con su malla de triángulos a la vista, quieto">
+          <svg class="schematic topo-sch" viewBox="0 0 200 160" role="img" aria-label="Puesto de frutas triangulado"><polygon points="20,40 180,40 165,60 35,60" fill="var(--accent)"/><rect x="30" y="60" width="6" height="70" fill="var(--peach-shade)"/><rect x="164" y="60" width="6" height="70" fill="var(--peach-shade)"/><rect x="25" y="95" width="150" height="10" fill="var(--peach)"/><circle cx="60" cy="88" r="7" fill="#FF9A3C"/><circle cx="100" cy="88" r="7" fill="#E8433A"/><circle cx="140" cy="88" r="7" fill="#8BD450"/><g stroke="var(--ink-deep)" stroke-width="1"><line x1="25" y1="95" x2="175" y2="105"/><line x1="20" y1="40" x2="165" y2="60"/></g></svg>
+          <p class="micro tag tag--pinned topo-tag"><b>Malla</b> / Triángulos</p>
+        </div>
+        <div class="stage" data-3d="topo-quad" aria-label="Personaje no jugable con malla de cuadriláteros, caminando en el lugar">
+          <svg class="schematic topo-sch" viewBox="0 0 200 160" role="img" aria-label="Personaje con malla de cuadriláteros"><rect x="88" y="14" width="24" height="24" fill="var(--paper-shade)"/><rect x="80" y="40" width="40" height="46" fill="var(--peach)"/><rect x="68" y="42" width="10" height="44" fill="var(--peach)"/><rect x="122" y="42" width="10" height="44" fill="var(--peach)"/><rect x="84" y="88" width="13" height="56" fill="var(--peach-shade)"/><rect x="103" y="88" width="13" height="56" fill="var(--peach-shade)"/><g stroke="var(--ink-deep)" stroke-width="1"><line x1="80" y1="55" x2="120" y2="55"/><line x1="80" y1="70" x2="120" y2="70"/><line x1="100" y1="40" x2="100" y2="86"/><line x1="84" y1="116" x2="116" y2="116"/></g></svg>
+          <p class="micro tag tag--pinned topo-tag"><b>Malla</b> / Cuadriláteros</p>
+        </div>
+        <div class="topo-info">
+          <p class="micro index">B / Cuadriláteros</p>
+          <h3>Personaje animado</h3>
+          <p class="body">Un <b>NPC</b> se mueve. Los cuadriláteros forman <b>bucles ordenados</b> alrededor de hombros, codos y rodillas: cuando se dobla, la malla se estira limpia en esos bucles, sin pliegues ni picos.</p>
+          <dl class="specs-list"><div><dt class="micro">Lados</dt><dd>4</dd></div><div><dt class="micro">Se mueve</dt><dd>Sí</dd></div><div><dt class="micro">Ideal para</dt><dd>Personajes y animación</dd></div></dl>
+          <p class="micro hint">Al exportar, cada cuadrilátero se parte en 2 triángulos</p>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <nav class="controls" aria-label="Navegación del curso">
