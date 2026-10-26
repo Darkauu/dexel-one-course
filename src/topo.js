@@ -64,11 +64,13 @@ function lowFruit(r) {
 }
 
 class TopoStage {
-  constructor({ az, radius, fy }) {
+  // plate: radio de la peana. radius/fy: esfera que debe caber entera en el escenario
+  // (peana incluida), así nada se corta contra el borde.
+  constructor({ az, radius, fy, plate }) {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
     addLights(this.scene, { shadow: true, shadowSize: 5 });
-    plinth(this.scene, 0, 2.3);
+    plinth(this.scene, 0, plate);
     this.period = 1e9;
     this.az = az; this.radius = radius; this.fy = fy;
   }
@@ -87,7 +89,7 @@ class TopoStage {
 // --- A · puesto de frutas (triángulos, quieto) -------------------------------
 export class TopoTriDemo extends TopoStage {
   constructor() {
-    super({ az: 0.55, radius: 2.15, fy: 1.15 });
+    super({ az: 0.55, radius: 2.45, fy: 1.3, plate: 1.65 });
     const tri = (c) => wireMat(c, { tri: true });
     const add = (geo, mat, x, y, z, ry = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; this.scene.add(m); return m; };
     const wood = tri(PALETTE.peachShade), wood2 = tri(PALETTE.peach);
@@ -156,7 +158,7 @@ class Limb {
 
 export class TopoQuadDemo extends TopoStage {
   constructor() {
-    super({ az: -0.5, radius: 2.0, fy: 1.45 });
+    super({ az: -0.5, radius: 2.05, fy: 1.45, plate: 1.15 });
     const quad = (c) => wireMat(c);
     const shirt = quad(PALETTE.peach), pants = quad(PALETTE.peachShade), skin = quad(PALETTE.paperShade);
     this.body = new THREE.Group();
@@ -165,7 +167,6 @@ export class TopoQuadDemo extends TopoStage {
     part(gridBox(0.86, 1.0, 0.46, [4, 5, 2]), shirt, 0, 1.75, 0);           // torso
     this.head = part(gridBox(0.56, 0.56, 0.52, [3, 3, 3]), skin, 0, 2.58, 0);
     part(gridBox(0.62, 0.12, 0.58, [3, 1, 3]), quad(PALETTE.accent), 0, 2.9, 0, this.body); // gorra
-    part(gridBox(0.14, 0.1, 0.12, [1, 1, 1]), skin, 0, 2.6, 0.31);           // nariz
     // Brazos y piernas: grupo en la articulación (hombro, cadera) + extremidad que se dobla.
     const limb = (len, th, mat, x, y) => { const g = new THREE.Group(); g.position.set(x, y, 0); this.body.add(g); const l = new Limb(len, th, mat); g.add(l.mesh); return { g, l }; };
     this.arms = [limb(1.0, 0.22, shirt, -0.56, 2.18), limb(1.0, 0.22, shirt, 0.56, 2.18)];
