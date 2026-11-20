@@ -1,0 +1,19 @@
+# Publica el deck en https://tripo3d-course-f40bf.web.app con cada merge a master.
+# El sitio ya va compilado en el repo (dist/deck.js): no hay paso de build.
+name: Firebase Hosting · publicar
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TRIPO3D_COURSE_F40BF }}
+          channelId: live
+          projectId: tripo3d-course-f40bf

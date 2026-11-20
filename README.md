@@ -13,6 +13,17 @@ npm start
 `npm start` sirve la carpeta y recompila `src/` en cada recarga del navegador.
 Sin Node también funciona: abrir `index.html` directamente.
 
+## Publicar (Firebase Hosting)
+
+- Cada merge a `master` publica el deck en **https://tripo3d-course-f40bf.web.app**
+  (`.github/workflows/firebase-hosting-merge.yml`).
+- Cada PR recibe una vista previa en una URL temporal (7 días), comentada en el propio PR.
+- Se publica lo que ya está compilado: `index.html`, `styles.css`, `dist/` y
+  `vendor/fonts/` (ver `ignore` en `firebase.json`). **Antes de hacer merge, recompila
+  `dist/deck.js` (`npm run build`) si cambiaste algo en `src/`.**
+- HTML, CSS y JS se sirven sin caché: un cambio publicado se ve al recargar.
+- Credencial: secreto `FIREBASE_SERVICE_ACCOUNT_TRIPO3D_COURSE_F40BF` del repositorio.
+
 ## Presentar
 
 | Tecla | Acción |
